@@ -19,5 +19,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "android-api"
+rootProject.name = "InsightTrack Analytics API"
 include(":app")
+include(":analytics")
