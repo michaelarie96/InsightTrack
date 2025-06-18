@@ -16,11 +16,12 @@ import java.util.concurrent.TimeUnit
 /**
  * Handles all the HTTP communication with the Flask API
  */
-class NetworkManager(private val context: Context, private val baseUrl: String) {
+class NetworkManager(private val context: Context, private val baseUrl: String) :
+    NetworkConnectivityMonitor.NetworkCallbackListener {
 
     private val apiService: ApiService
-
     private val offlineStorage = OfflineEventStorage(context)
+    private val networkMonitor = NetworkConnectivityMonitor(context)
 
     init {
         // Set up the HTTP client
@@ -42,7 +43,26 @@ class NetworkManager(private val context: Context, private val baseUrl: String) 
 
         println("🌐 Network Manager initialized with base URL: $baseUrl")
 
+        // Start monitoring network connectivity
+        networkMonitor.startMonitoring(this)
+
+        // Send any pending events from app startup
         sendPendingEvents()
+    }
+
+    /**
+     * Called when network becomes available
+     */
+    override fun onNetworkAvailable() {
+        println("🚀 Internet is back! Attempting to send pending events...")
+        sendPendingEvents()
+    }
+
+    /**
+     * Called when network is lost
+     */
+    override fun onNetworkLost() {
+        println("📴 Internet connection lost - events will be stored offline")
     }
 
     /**
@@ -61,11 +81,12 @@ class NetworkManager(private val context: Context, private val baseUrl: String) 
                     }
 
                     override fun onError(error: String) {
-                        println("❌ Failed to send pending event: ${event.event_type}")
-                        // Keep it in storage for next retry
+                        println("❌ Failed to send pending event: ${event.event_type} - will retry later")
                     }
                 })
             }
+        } else {
+            println("📭 No pending events to send")
         }
     }
 
@@ -74,6 +95,14 @@ class NetworkManager(private val context: Context, private val baseUrl: String) 
      */
     fun sendEvent(eventRequest: EventRequest, callback: EventCallback<EventResponse>) {
         println("📤 Sending event: ${eventRequest.event_type}")
+
+        // Check if network is available first
+        if (!networkMonitor.isNetworkCurrentlyAvailable()) {
+            println("📴 No internet connection - storing event offline")
+            offlineStorage.storeEvent(eventRequest)
+            callback.onError("No internet connection - event stored offline")
+            return
+        }
 
         val call = apiService.sendEvent(eventRequest)
 
@@ -86,6 +115,9 @@ class NetworkManager(private val context: Context, private val baseUrl: String) 
                 } else {
                     val errorMsg = "Failed to send event: ${response.code()} ${response.message()}"
                     println("❌ $errorMsg")
+
+                    // Store offline for retry later
+                    offlineStorage.storeEvent(eventRequest)
                     callback.onError(errorMsg)
                 }
             }
@@ -96,7 +128,6 @@ class NetworkManager(private val context: Context, private val baseUrl: String) 
 
                 // Store offline for retry later
                 offlineStorage.storeEvent(eventRequest)
-
                 callback.onError(errorMsg)
             }
         })
@@ -138,6 +169,21 @@ class NetworkManager(private val context: Context, private val baseUrl: String) 
         }
         interceptor.level = HttpLoggingInterceptor.Level.BODY
         return interceptor
+    }
+
+    /**
+     * Clean up when done (call this in your app's onDestroy)
+     */
+    fun cleanup() {
+        networkMonitor.stopMonitoring()
+    }
+
+    /**
+     * Manually trigger retry of pending events (useful for testing)
+     */
+    fun retryPendingEvents() {
+        println("🔄 Manually triggering retry of pending events...")
+        sendPendingEvents()
     }
 }
 

@@ -204,6 +204,25 @@ class SDK private constructor(
         )
     }
 
+    /**
+     * Clean up resources when app is closing
+     */
+    fun cleanup() {
+        if (::networkManager.isInitialized) {
+            networkManager.cleanup()
+            println("🧹 SDK cleanup completed")
+        }
+    }
+
+    /**
+     * Manually retry sending offline events (for testing)
+     */
+    fun retryOfflineEvents() {
+        if (::networkManager.isInitialized) {
+            networkManager.retryPendingEvents()
+        }
+    }
+
     companion object {
         @Volatile
         private var INSTANCE: SDK? = null

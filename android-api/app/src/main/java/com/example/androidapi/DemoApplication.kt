@@ -23,6 +23,20 @@ class DemoApplication : Application() {
 
         // Setup crash reporting
         setupCrashReporting()
+
+        println("🚀 Analytics SDK initialized and ready!")
+    }
+
+    override fun onTerminate() {
+        super.onTerminate()
+
+        // Clean up network monitoring when app terminates
+        try {
+            SDK.getInstance().cleanup()
+            println("🧹 Analytics SDK cleaned up successfully")
+        } catch (e: Exception) {
+            println("⚠️ Error during cleanup: ${e.message}")
+        }
     }
 
     private fun setupCrashReporting() {
