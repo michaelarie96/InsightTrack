@@ -2,7 +2,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![API Status](https://img.shields.io/badge/API-Live-green)](https://insighttrack-analytics-api.vercel.app/health)
-[![JitPack](https://jitpack.io/v/yourusername/insighttrack-analytics.svg)](https://jitpack.io/#yourusername/insighttrack-analytics)
+[![JitPack](https://jitpack.io/v/michaelarie96/InsightTrack.svg)](https://jitpack.io/#michaelarie96/InsightTrack)
 [![Documentation](https://img.shields.io/badge/docs-live-blue)](https://yourusername.github.io/insighttrack-analytics/)
 
 > **Complete Analytics SDK Ecosystem** - Track user behavior, sessions, events, and crashes with enterprise-grade analytics infrastructure
