@@ -7,7 +7,7 @@ import android.os.Bundle
 /**
  * Activity lifecycle callbacks to automatically track screen views and session management
  */
-class AnalyticsLifecycleCallbacks : Application.ActivityLifecycleCallbacks {
+class LifecycleCallbacks : Application.ActivityLifecycleCallbacks {
     private var activeActivities = 0
 
     override fun onActivityCreated(activity: Activity, bundle: Bundle?) {
@@ -17,28 +17,28 @@ class AnalyticsLifecycleCallbacks : Application.ActivityLifecycleCallbacks {
     override fun onActivityStarted(activity: Activity) {
         if (activeActivities == 0) {
             // App coming to foreground
-            AnalyticsAPI.getInstance().startSession()
-            AnalyticsAPI.getInstance().trackAppLifecycle("foreground")
+            SDK.getInstance().startSession()
+            SDK.getInstance().trackAppLifecycle("foreground")
         }
         activeActivities++
     }
 
     override fun onActivityResumed(activity: Activity) {
         // Track screen view with the activity name
-        AnalyticsAPI.getInstance().trackScreenView(activity.javaClass.simpleName)
-        AnalyticsAPI.getInstance().trackAppLifecycle("onResume")
+        SDK.getInstance().trackScreenView(activity.javaClass.simpleName)
+        SDK.getInstance().trackAppLifecycle("onResume")
     }
 
     override fun onActivityPaused(activity: Activity) {
-        AnalyticsAPI.getInstance().trackAppLifecycle("onPause")
+        SDK.getInstance().trackAppLifecycle("onPause")
     }
 
     override fun onActivityStopped(activity: Activity) {
         activeActivities--
         if (activeActivities == 0) {
             // App going to background
-            AnalyticsAPI.getInstance().trackAppLifecycle("background")
-            AnalyticsAPI.getInstance().endSession()
+            SDK.getInstance().trackAppLifecycle("background")
+            SDK.getInstance().endSession()
         }
     }
 

@@ -4,7 +4,7 @@ import android.os.Bundle
 import android.widget.Button
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
-import com.example.androidapi.analytics.AnalyticsAPI
+import com.example.androidapi.analytics.SDK
 
 class MainActivity : AppCompatActivity() {
 
@@ -22,7 +22,7 @@ class MainActivity : AppCompatActivity() {
 
         // Set user ID (typically after login)
         val userId = "u_" + (10000..99999).random()
-        AnalyticsAPI.getInstance().setUserId(userId)
+        SDK.getInstance().setUserId(userId)
 
         // Set up button click listeners for different analytics events
         setupButtonListeners()
@@ -31,18 +31,18 @@ class MainActivity : AppCompatActivity() {
     private fun setupButtonListeners() {
         // Login button
         findViewById<Button>(R.id.login_button)?.setOnClickListener {
-            AnalyticsAPI.getInstance().trackLogin("email")
-            AnalyticsAPI.getInstance().trackButtonClick("login_button")
+            SDK.getInstance().trackLogin("email")
+            SDK.getInstance().trackButtonClick("login_button")
         }
 
         // Feature button
         findViewById<Button>(R.id.feature_button)?.setOnClickListener {
-            AnalyticsAPI.getInstance().trackFeatureUsed("premium_feature")
+            SDK.getInstance().trackFeatureUsed("premium_feature")
         }
 
         // View product button
         findViewById<Button>(R.id.view_product_button)?.setOnClickListener {
-            AnalyticsAPI.getInstance().trackProductView(
+            SDK.getInstance().trackProductView(
                 product["id"] as String,
                 product["name"] as String,
                 product["price"] as Double,
@@ -52,7 +52,7 @@ class MainActivity : AppCompatActivity() {
 
         // Add to cart button
         findViewById<Button>(R.id.add_to_cart_button)?.setOnClickListener {
-            AnalyticsAPI.getInstance().trackAddToCart(
+            SDK.getInstance().trackAddToCart(
                 product["id"] as String,
                 product["name"] as String,
                 product["price"] as Double,
@@ -62,7 +62,7 @@ class MainActivity : AppCompatActivity() {
 
         // Checkout button
         findViewById<Button>(R.id.checkout_button)?.setOnClickListener {
-            AnalyticsAPI.getInstance().trackCheckout()
+            SDK.getInstance().trackCheckout()
         }
 
         // Purchase button
@@ -78,7 +78,7 @@ class MainActivity : AppCompatActivity() {
                 )
             )
 
-            AnalyticsAPI.getInstance().trackPurchase(
+            SDK.getInstance().trackPurchase(
                 orderId,
                 product["price"] as Double,
                 items
@@ -88,22 +88,22 @@ class MainActivity : AppCompatActivity() {
         // Search button
         findViewById<Button>(R.id.search_button)?.setOnClickListener {
             val query = findViewById<TextView>(R.id.search_input)?.text?.toString() ?: "smartphone"
-            AnalyticsAPI.getInstance().trackSearch(query, 5)
+            SDK.getInstance().trackSearch(query, 5)
         }
 
         // Settings button
         findViewById<Button>(R.id.settings_button)?.setOnClickListener {
-            AnalyticsAPI.getInstance().trackSettingsChanged("notifications", true)
+            SDK.getInstance().trackSettingsChanged("notifications", true)
         }
 
         // Profile button
         findViewById<Button>(R.id.profile_button)?.setOnClickListener {
-            AnalyticsAPI.getInstance().trackProfileUpdated()
+            SDK.getInstance().trackProfileUpdated()
         }
 
         // Logout button
         findViewById<Button>(R.id.logout_button)?.setOnClickListener {
-            AnalyticsAPI.getInstance().trackLogout()
+            SDK.getInstance().trackLogout()
         }
 
         // Crash button
@@ -113,13 +113,13 @@ class MainActivity : AppCompatActivity() {
                 val list = listOf<String>()
                 val item = list[10] // This will throw IndexOutOfBoundsException
             } catch (e: Exception) {
-                AnalyticsAPI.getInstance().logCrash(e)
+                SDK.getInstance().logCrash(e)
             }
         }
 
         // Custom event button
         findViewById<Button>(R.id.custom_event_button)?.setOnClickListener {
-            AnalyticsAPI.getInstance().trackEvent(
+            SDK.getInstance().trackEvent(
                 "custom_action",
                 mapOf(
                     "action_name" to "special_feature",

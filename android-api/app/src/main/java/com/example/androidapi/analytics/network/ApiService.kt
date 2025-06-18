@@ -9,7 +9,7 @@ import retrofit2.http.POST
 import retrofit2.http.Path
 
 /**
- * API Service Interface - Define all the "addresses" where we can send requests
+ * Defines all the "addresses" where we can send requests
  */
 interface ApiService {
 
