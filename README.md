@@ -364,12 +364,12 @@ curl https://[your-api-domain].vercel.app/analytics/events/com.example.myapp/sta
 ### Environment Variables
 
 ```bash
-# Database Configuration
-DB_CONNECTION_STRING=mongodb+srv://username:password@cluster.mongodb.net
+# Database Configuration (Example - Replace with your actual values)
+DB_CONNECTION_STRING=mongodb+srv://[username]:[password]@[cluster].mongodb.net
 DB_NAME=insighttrack_analytics
 
 # API Configuration
-SECRET_KEY=your-secret-key
+SECRET_KEY=[your-secret-key]
 API_VERSION=v1
 ```
 
