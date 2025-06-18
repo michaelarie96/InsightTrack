@@ -1,0 +1,14 @@
+# JitPack build configuration
+
+jdk:
+  - openjdk17
+
+before_install:
+  - echo "Starting JitPack build for InsightTrack Analytics"
+  - echo "Building library module: analytics"
+
+android:
+  module: android-api
+
+env:
+  GRADLE_OPTS: "-Xmx2048m -XX:MaxPermSize=512m"
