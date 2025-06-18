@@ -1,13 +1,13 @@
-package com.example.androidapi.analytics
+package com.insighttrack.analytics
 
 import android.content.Context
-import com.example.androidapi.analytics.models.EventRequest
-import com.example.androidapi.analytics.models.EventResponse
-import com.example.androidapi.analytics.network.EventCallback
-import com.example.androidapi.analytics.network.NetworkManager
+import com.insighttrack.analytics.models.EventRequest
+import com.insighttrack.analytics.models.EventResponse
+import com.insighttrack.analytics.network.EventCallback
+import com.insighttrack.analytics.network.NetworkManager
 import java.util.*
 
-class SDK private constructor(
+class InsightTrackSDK private constructor(
     private val apiKey: String,
     private val baseUrl: String,
     private val packageName: String
@@ -225,9 +225,9 @@ class SDK private constructor(
 
     companion object {
         @Volatile
-        private var INSTANCE: SDK? = null
+        private var INSTANCE: InsightTrackSDK? = null
 
-        fun getInstance(): SDK {
+        fun getInstance(): InsightTrackSDK {
             return INSTANCE ?: throw IllegalStateException(
                 "SDK not initialized! Please call SDK.Builder.with(context).build() first"
             )
@@ -287,12 +287,12 @@ class SDK private constructor(
         /**
          * Build and initialize the SDK
          */
-        fun build(): SDK {
+        fun build(): InsightTrackSDK {
             val key = apiKey ?: throw IllegalArgumentException("API key is required! Use setApiKey()")
 
             val appContext = context.applicationContext
 
-            val sdk = SDK(key, baseUrl, appContext.packageName)
+            val sdk = InsightTrackSDK(key, baseUrl, appContext.packageName)
 
             sdk.initialize(appContext)
 

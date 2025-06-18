@@ -1,4 +1,4 @@
-package com.example.androidapi.analytics.models
+package com.insighttrack.analytics.models
 
 /**
  * Data class for sending events to the API

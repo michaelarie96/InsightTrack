@@ -1,8 +1,8 @@
 package com.example.androidapi
 
 import android.app.Application
-import com.example.androidapi.analytics.SDK
-import com.example.androidapi.analytics.LifecycleCallbacks
+import com.insighttrack.analytics.InsightTrackSDK
+import com.insighttrack.analytics.LifecycleCallbacks
 
 class DemoApplication : Application() {
 
@@ -10,13 +10,13 @@ class DemoApplication : Application() {
         super.onCreate()
 
         // Initialize Analytics SDK - Standard Android pattern
-        SDK.Builder.with(this)
+        InsightTrackSDK.Builder.with(this)
             .setApiKey("demo-api-key-12345")
             .useLocalDevelopment(5001)
             .build()
 
         // Track app start
-        SDK.getInstance().trackAppLifecycle("app_start")
+        InsightTrackSDK.getInstance().trackAppLifecycle("app_start")
 
         // Register lifecycle callbacks for automatic tracking
         registerActivityLifecycleCallbacks(LifecycleCallbacks())
@@ -32,7 +32,7 @@ class DemoApplication : Application() {
 
         // Clean up network monitoring when app terminates
         try {
-            SDK.getInstance().cleanup()
+            InsightTrackSDK.getInstance().cleanup()
             println("🧹 Analytics SDK cleaned up successfully")
         } catch (e: Exception) {
             println("⚠️ Error during cleanup: ${e.message}")
@@ -44,7 +44,7 @@ class DemoApplication : Application() {
 
         Thread.setDefaultUncaughtExceptionHandler { thread, throwable ->
             // Log crash to analytics
-            SDK.getInstance().logCrash(throwable)
+            InsightTrackSDK.getInstance().logCrash(throwable)
 
             // Pass to original handler
             defaultHandler?.uncaughtException(thread, throwable)

@@ -37,6 +37,8 @@ android {
 
 dependencies {
 
+    implementation(project(":analytics"))
+
     implementation(libs.retrofit)
     implementation(libs.converter.gson)
     implementation(libs.okhttp)

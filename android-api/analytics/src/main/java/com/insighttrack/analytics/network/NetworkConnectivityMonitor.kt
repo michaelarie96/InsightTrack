@@ -1,4 +1,4 @@
-package com.example.androidapi.analytics.network
+package com.insighttrack.analytics.network
 
 import android.content.Context
 import android.net.ConnectivityManager

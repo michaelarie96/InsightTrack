@@ -1,7 +1,7 @@
-package com.example.androidapi.analytics.network
+package com.insighttrack.analytics.network
 
-import com.example.androidapi.analytics.models.EventRequest
-import com.example.androidapi.analytics.models.EventResponse
+import com.insighttrack.analytics.models.EventRequest
+import com.insighttrack.analytics.models.EventResponse
 import retrofit2.Call
 import retrofit2.http.Body
 import retrofit2.http.GET

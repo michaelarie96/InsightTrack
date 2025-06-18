@@ -1,8 +1,8 @@
-package com.example.androidapi.analytics.storage
+package com.insighttrack.analytics.storage
 
 import android.content.Context
 import android.content.SharedPreferences
-import com.example.androidapi.analytics.models.EventRequest
+import com.insighttrack.analytics.models.EventRequest
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 

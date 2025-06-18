@@ -4,8 +4,8 @@ import android.os.Bundle
 import android.widget.Button
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
-import com.example.androidapi.analytics.SDK
-import com.example.androidapi.analytics.storage.OfflineEventStorage
+import com.insighttrack.analytics.InsightTrackSDK
+import com.insighttrack.analytics.storage.OfflineEventStorage
 
 class MainActivity : AppCompatActivity() {
 
@@ -23,7 +23,7 @@ class MainActivity : AppCompatActivity() {
 
         // Set user ID (typically after login)
         val userId = "u_" + (10000..99999).random()
-        SDK.getInstance().setUserId(userId)
+        InsightTrackSDK.getInstance().setUserId(userId)
 
         // Set up button click listeners for different analytics events
         setupButtonListeners()
@@ -32,18 +32,18 @@ class MainActivity : AppCompatActivity() {
     private fun setupButtonListeners() {
         // Login button
         findViewById<Button>(R.id.login_button)?.setOnClickListener {
-            SDK.getInstance().trackLogin("email")
-            SDK.getInstance().trackButtonClick("login_button")
+            InsightTrackSDK.getInstance().trackLogin("email")
+            InsightTrackSDK.getInstance().trackButtonClick("login_button")
         }
 
         // Feature button
         findViewById<Button>(R.id.feature_button)?.setOnClickListener {
-            SDK.getInstance().trackFeatureUsed("premium_feature")
+            InsightTrackSDK.getInstance().trackFeatureUsed("premium_feature")
         }
 
         // View product button
         findViewById<Button>(R.id.view_product_button)?.setOnClickListener {
-            SDK.getInstance().trackProductView(
+            InsightTrackSDK.getInstance().trackProductView(
                 product["id"] as String,
                 product["name"] as String,
                 product["price"] as Double,
@@ -53,7 +53,7 @@ class MainActivity : AppCompatActivity() {
 
         // Add to cart button
         findViewById<Button>(R.id.add_to_cart_button)?.setOnClickListener {
-            SDK.getInstance().trackAddToCart(
+            InsightTrackSDK.getInstance().trackAddToCart(
                 product["id"] as String,
                 product["name"] as String,
                 product["price"] as Double,
@@ -63,7 +63,7 @@ class MainActivity : AppCompatActivity() {
 
         // Checkout button
         findViewById<Button>(R.id.checkout_button)?.setOnClickListener {
-            SDK.getInstance().trackCheckout()
+            InsightTrackSDK.getInstance().trackCheckout()
         }
 
         // Purchase button
@@ -79,7 +79,7 @@ class MainActivity : AppCompatActivity() {
                 )
             )
 
-            SDK.getInstance().trackPurchase(
+            InsightTrackSDK.getInstance().trackPurchase(
                 orderId,
                 product["price"] as Double,
                 items
@@ -89,22 +89,22 @@ class MainActivity : AppCompatActivity() {
         // Search button
         findViewById<Button>(R.id.search_button)?.setOnClickListener {
             val query = findViewById<TextView>(R.id.search_input)?.text?.toString() ?: "smartphone"
-            SDK.getInstance().trackSearch(query, 5)
+            InsightTrackSDK.getInstance().trackSearch(query, 5)
         }
 
         // Settings button
         findViewById<Button>(R.id.settings_button)?.setOnClickListener {
-            SDK.getInstance().trackSettingsChanged("notifications", true)
+            InsightTrackSDK.getInstance().trackSettingsChanged("notifications", true)
         }
 
         // Profile button
         findViewById<Button>(R.id.profile_button)?.setOnClickListener {
-            SDK.getInstance().trackProfileUpdated()
+            InsightTrackSDK.getInstance().trackProfileUpdated()
         }
 
         // Logout button
         findViewById<Button>(R.id.logout_button)?.setOnClickListener {
-            SDK.getInstance().trackLogout()
+            InsightTrackSDK.getInstance().trackLogout()
         }
 
         // Crash button
@@ -114,13 +114,13 @@ class MainActivity : AppCompatActivity() {
                 val list = listOf<String>()
                 val item = list[10] // This will throw IndexOutOfBoundsException
             } catch (e: Exception) {
-                SDK.getInstance().logCrash(e)
+                InsightTrackSDK.getInstance().logCrash(e)
             }
         }
 
         // Custom event button
         findViewById<Button>(R.id.custom_event_button)?.setOnClickListener {
-            SDK.getInstance().trackEvent(
+            InsightTrackSDK.getInstance().trackEvent(
                 "custom_action",
                 mapOf(
                     "action_name" to "special_feature",
@@ -132,7 +132,7 @@ class MainActivity : AppCompatActivity() {
         // Manual retry button for testing offline events
         findViewById<Button>(R.id.retry_offline_button)?.setOnClickListener {
             println("🔄 Manual retry button clicked")
-            SDK.getInstance().retryOfflineEvents()
+            InsightTrackSDK.getInstance().retryOfflineEvents()
         }
 
         // Clear corrupted offline events button

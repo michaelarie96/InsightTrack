@@ -1,9 +1,9 @@
-package com.example.androidapi.analytics.network
+package com.insighttrack.analytics.network
 
 import android.content.Context
-import com.example.androidapi.analytics.models.EventRequest
-import com.example.androidapi.analytics.models.EventResponse
-import com.example.androidapi.analytics.storage.OfflineEventStorage
+import com.insighttrack.analytics.models.EventRequest
+import com.insighttrack.analytics.models.EventResponse
+import com.insighttrack.analytics.storage.OfflineEventStorage
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Call

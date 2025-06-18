@@ -1,4 +1,4 @@
-package com.example.androidapi.analytics
+package com.insighttrack.analytics
 
 import android.app.Activity
 import android.app.Application
@@ -17,28 +17,28 @@ class LifecycleCallbacks : Application.ActivityLifecycleCallbacks {
     override fun onActivityStarted(activity: Activity) {
         if (activeActivities == 0) {
             // App coming to foreground
-            SDK.getInstance().startSession()
-            SDK.getInstance().trackAppLifecycle("foreground")
+            InsightTrackSDK.getInstance().startSession()
+            InsightTrackSDK.getInstance().trackAppLifecycle("foreground")
         }
         activeActivities++
     }
 
     override fun onActivityResumed(activity: Activity) {
         // Track screen view with the activity name
-        SDK.getInstance().trackScreenView(activity.javaClass.simpleName)
-        SDK.getInstance().trackAppLifecycle("onResume")
+        InsightTrackSDK.getInstance().trackScreenView(activity.javaClass.simpleName)
+        InsightTrackSDK.getInstance().trackAppLifecycle("onResume")
     }
 
     override fun onActivityPaused(activity: Activity) {
-        SDK.getInstance().trackAppLifecycle("onPause")
+        InsightTrackSDK.getInstance().trackAppLifecycle("onPause")
     }
 
     override fun onActivityStopped(activity: Activity) {
         activeActivities--
         if (activeActivities == 0) {
             // App going to background
-            SDK.getInstance().trackAppLifecycle("background")
-            SDK.getInstance().endSession()
+            InsightTrackSDK.getInstance().trackAppLifecycle("background")
+            InsightTrackSDK.getInstance().endSession()
         }
     }
 
