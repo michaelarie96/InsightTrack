@@ -70,4 +70,30 @@ class OfflineEventStorage(context: Context) {
     fun getPendingCount(): Int {
         return getPendingEvents().size
     }
+
+    /**
+     * Clear all events that are missing required fields (corrupted data)
+     */
+    fun clearCorruptedEvents() {
+        val events = getPendingEvents().toMutableList()
+        val validEvents = events.filter { event ->
+            // Keep only events that have required fields
+            !event.user_id.isNullOrEmpty() &&
+                    !event.event_type.isNullOrEmpty() &&
+                    !event.package_name.isNullOrEmpty()
+        }
+
+        val removedCount = events.size - validEvents.size
+
+        if (removedCount > 0) {
+            // Save only the valid events
+            val eventsJson = gson.toJson(validEvents)
+            prefs.edit().putString(eventsKey, eventsJson).apply()
+
+            println("🧹 Removed $removedCount corrupted offline events")
+            println("📊 ${validEvents.size} valid events remaining")
+        } else {
+            println("✅ No corrupted events found")
+        }
+    }
 }

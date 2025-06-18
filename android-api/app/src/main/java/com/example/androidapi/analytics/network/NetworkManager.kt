@@ -74,20 +74,45 @@ class NetworkManager(private val context: Context, private val baseUrl: String) 
             println("📤 Found ${pendingEvents.size} pending offline events, attempting to send...")
 
             pendingEvents.forEach { event ->
-                sendEvent(event, object : EventCallback<EventResponse> {
+                sendEventDirect(event, object : EventCallback<EventResponse> {
                     override fun onSuccess(data: EventResponse?) {
                         offlineStorage.removeEvent(event)
                         println("✅ Sent pending event: ${event.event_type}")
                     }
 
                     override fun onError(error: String) {
-                        println("❌ Failed to send pending event: ${event.event_type} - will retry later")
+                        println("❌ Failed to send pending event: ${event.event_type} - keeping in storage for later retry")
+                        // DON'T store it again - it's already in storage!
                     }
                 })
             }
         } else {
             println("📭 No pending events to send")
         }
+    }
+
+    /**
+     * Send event directly without offline storage (for retry attempts)
+     */
+    private fun sendEventDirect(eventRequest: EventRequest, callback: EventCallback<EventResponse>) {
+        val call = apiService.sendEvent(eventRequest)
+
+        call.enqueue(object : Callback<EventResponse> {
+            override fun onResponse(call: Call<EventResponse>, response: Response<EventResponse>) {
+                if (response.isSuccessful) {
+                    val eventResponse = response.body()
+                    callback.onSuccess(eventResponse)
+                } else {
+                    val errorMsg = "Failed to send event: ${response.code()} ${response.message()}"
+                    callback.onError(errorMsg)
+                }
+            }
+
+            override fun onFailure(call: Call<EventResponse>, t: Throwable) {
+                val errorMsg = "Network error: ${t.message}"
+                callback.onError(errorMsg)
+            }
+        })
     }
 
     /**

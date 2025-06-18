@@ -131,5 +131,21 @@
             android:layout_height="wrap_content"
             android:text="Track Custom Event" />
 
+        <Button
+            android:id="@+id/retry_offline_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="🔄 Retry Offline Events (Test)"
+            android:background="#FF9800"
+            android:textColor="@color/white" />
+
+        <Button
+            android:id="@+id/clear_offline_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="🧹 Clear Corrupted Events"
+            android:background="#f44336"
+            android:textColor="@color/white" />
+
     </LinearLayout>
 </ScrollView>

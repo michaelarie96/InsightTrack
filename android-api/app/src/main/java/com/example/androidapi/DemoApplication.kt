@@ -12,7 +12,7 @@ class DemoApplication : Application() {
         // Initialize Analytics SDK - Standard Android pattern
         SDK.Builder.with(this)
             .setApiKey("demo-api-key-12345")
-            .useLocalDevelopment(5000)
+            .useLocalDevelopment(5001)
             .build()
 
         // Track app start

@@ -21,7 +21,7 @@ def log_event():
             return jsonify({"error": "Could not connect to the database"}), 500
 
         # Required field validation
-        required_fields = ['package_name', 'event_type', 'user_id']
+        required_fields = ['package_name', 'event_type']
         missing_fields = [field for field in required_fields if field not in data]
         if missing_fields:
             return jsonify({
@@ -44,7 +44,7 @@ def log_event():
         event_doc = {
             "_id": str(uuid.uuid4()),
             "event_type": data['event_type'],
-            "user_id": data['user_id'],
+            "user_id": data.get('user_id'),
             "timestamp": timestamp,
             "properties": data.get('properties', {}),
             "session_id": data.get('session_id'),

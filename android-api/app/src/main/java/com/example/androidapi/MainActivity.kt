@@ -5,6 +5,7 @@ import android.widget.Button
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import com.example.androidapi.analytics.SDK
+import com.example.androidapi.analytics.storage.OfflineEventStorage
 
 class MainActivity : AppCompatActivity() {
 
@@ -126,6 +127,20 @@ class MainActivity : AppCompatActivity() {
                     "value" to 42
                 )
             )
+        }
+
+        // Manual retry button for testing offline events
+        findViewById<Button>(R.id.retry_offline_button)?.setOnClickListener {
+            println("🔄 Manual retry button clicked")
+            SDK.getInstance().retryOfflineEvents()
+        }
+
+        // Clear corrupted offline events button
+        findViewById<Button>(R.id.clear_offline_button)?.setOnClickListener {
+            println("🧹 Clear offline button clicked")
+            // Clear corrupted events through the SDK
+            val offlineStorage = OfflineEventStorage(this)
+            offlineStorage.clearCorruptedEvents()
         }
     }
 }
