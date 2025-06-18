@@ -54,7 +54,7 @@ afterEvaluate {
     publishing {
         publications {
             create<MavenPublication>("release") {
-                groupId = "com.github.your-username"  // Will be replaced with actual GitHub username
+                groupId = "com.github.michaelarie96"
                 artifactId = "insighttrack-analytics"
                 version = "1.0.0"
 
