@@ -55,8 +55,8 @@ afterEvaluate {
         publications {
             create<MavenPublication>("release") {
                 groupId = "com.github.michaelarie96"
-                artifactId = "insighttrack-analytics"
-                version = "1.0.1"
+                artifactId = "insighttrack"
+                version = "1.0.3"
 
                 afterEvaluate {
                     from(components["release"])
