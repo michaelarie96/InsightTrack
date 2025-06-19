@@ -1,6 +1,6 @@
 # InsightTrack Analytics - Integration Guide
 
-[![JitPack](https://jitpack.io/v/yourusername/insighttrack-analytics.svg)](https://jitpack.io/#yourusername/insighttrack-analytics)
+[![JitPack](https://jitpack.io/v/michaelarie96/InsightTrack.svg)](https://jitpack.io/#michaelarie96/InsightTrack)
 
 > **5-Minute Integration** - Add powerful analytics to your Android app
 
@@ -26,7 +26,7 @@ allprojects {
 
 ```kotlin
 dependencies {
-    implementation 'com.github.yourusername:insighttrack-analytics:v1.0.1'
+    implementation 'com.github.yourusername:insighttrack-analytics:v1.0.4'
 }
 ```
 
