@@ -1,6 +1,7 @@
 package com.insighttrack.analytics
 
 import android.content.Context
+import com.insighttrack.analytics.utils.LocationHelper
 import com.insighttrack.analytics.models.CrashRequest
 import com.insighttrack.analytics.models.CrashResponse
 import com.insighttrack.analytics.models.EventRequest
@@ -22,6 +23,9 @@ class InsightTrackSDK private constructor(
     // Network manager for HTTP communication
     private lateinit var networkManager: NetworkManager
 
+    // Location helper for geographic analytics
+    private lateinit var locationHelper: LocationHelper
+
     // Session and user tracking
     private var userId: String? = null
     private var sessionId: String? = null
@@ -34,11 +38,13 @@ class InsightTrackSDK private constructor(
      */
     private fun initialize(context: Context) {
         this.networkManager = NetworkManager(context, baseUrl)
+        this.locationHelper = LocationHelper(context)
 
         println("🚀 Analytics SDK initialized")
         println("🔑 API key: $apiKey")
         println("📦 Package: $packageName")
         println("🌐 Base URL: $baseUrl")
+        println("📍 Location capabilities: ${locationHelper.getLocationCapabilities()}")
 
         // Test connection
         testConnection()
@@ -97,12 +103,18 @@ class InsightTrackSDK private constructor(
         trackEvent("user_identified", mapOf("user_id" to userId))
     }
 
-
     // Register user with the backend API
     private fun registerUser(userId: String) {
         if (!::networkManager.isInitialized) {
             println("⚠️ Network manager not initialized, cannot register user")
             return
+        }
+
+        // Get user's country using location helper
+        val userCountry = if (::locationHelper.isInitialized) {
+            locationHelper.getUserCountry()
+        } else {
+            "Unknown"
         }
 
         // Create user registration request using our data class
@@ -111,12 +123,13 @@ class InsightTrackSDK private constructor(
             user_id = userId,
             timestamp = System.currentTimeMillis(),
             device_info = getDeviceInfo(),
-            country = "Unknown" // You can enhance this with location detection later
+            country = userCountry
         )
 
         networkManager.sendUserRegistration(userRequest, object : EventCallback<UserRegistrationResponse> {
             override fun onSuccess(data: UserRegistrationResponse?) {
                 println("✅ User registered successfully: ${data?.message}")
+                println("📍 User country: $userCountry")
             }
 
             override fun onError(error: String) {
@@ -124,6 +137,7 @@ class InsightTrackSDK private constructor(
             }
         })
     }
+
     // Session Management
     fun startSession() {
         sessionId = UUID.randomUUID().toString()

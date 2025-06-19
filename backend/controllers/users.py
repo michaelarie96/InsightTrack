@@ -2,6 +2,7 @@ from flask import Blueprint, request, jsonify
 from datetime import datetime, timedelta
 import uuid
 from mongodb_connection_manager import AnalyticsConnectionHolder
+from ip_geolocation import ip_geo_service
 from validation_utils import (
     validate_required_fields,
     parse_timestamp,
@@ -43,6 +44,15 @@ def register_user():
         package_name = data['package_name']
         user_id = data['user_id']
 
+        # Get country using hybrid approach (IP + locale fallback)
+        client_country = data.get('country', 'Unknown')
+        location_result = ip_geo_service.get_country_with_fallback(client_country)
+
+        final_country = location_result['country']
+        detection_method = location_result['detection_method']
+
+        print(f"👤 User {user_id} location: {final_country} (via {detection_method})")
+
         # Check if user already exists
         users_collection = db[f"{package_name}_users"]
         existing_user = users_collection.find_one({"user_id": user_id})
@@ -72,7 +82,13 @@ def register_user():
                 "user_id": user_id,
                 "first_seen": timestamp,
                 "last_active": timestamp,
-                "country": data.get('country', 'Unknown'),
+                "country": final_country,
+                "location_metadata": {
+                    "detection_method": detection_method,
+                    "confidence": location_result['confidence'],
+                    "ip_country": location_result.get('ip_country'),
+                    "client_country": location_result.get('client_country')
+                },
                 "device_info": data.get('device_info', {}),
                 "properties": data.get('properties', {}),
                 "created_at": datetime.now(),
