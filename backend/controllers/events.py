@@ -2,6 +2,14 @@ from flask import Blueprint, request, jsonify
 from datetime import datetime
 import uuid
 from mongodb_connection_manager import AnalyticsConnectionHolder
+from validation_utils import (
+    validate_required_fields,
+    parse_timestamp,
+    check_database_connection,
+    format_timestamps_in_document,
+    create_success_response,
+    create_error_response
+)
 
 events_blueprint = Blueprint('events', __name__)
 
@@ -17,28 +25,20 @@ def log_event():
         db = AnalyticsConnectionHolder.get_db()
 
         # Database connection check
-        if db is None:
-            return jsonify({"error": "Could not connect to the database"}), 500
+        is_connected, error_response = check_database_connection(db)
+        if not is_connected:
+            return error_response
 
         # Required field validation
         required_fields = ['package_name', 'event_type']
-        missing_fields = [field for field in required_fields if field not in data]
-        if missing_fields:
-            return jsonify({
-                "error": f"Missing required fields: {', '.join(missing_fields)}"
-            }), 400
+        is_valid, error_response = validate_required_fields(data, required_fields)
+        if not is_valid:
+            return error_response
 
-        # Parse timestamp if provided, otherwise use current time
-        timestamp = datetime.now()
-        if 'timestamp' in data:
-            try:
-                # Handle both millisecond timestamps and ISO strings
-                if isinstance(data['timestamp'], (int, float)):
-                    timestamp = datetime.fromtimestamp(data['timestamp'] / 1000)
-                else:
-                    timestamp = datetime.fromisoformat(data['timestamp'].replace('Z', '+00:00'))
-            except (ValueError, TypeError):
-                return jsonify({"error": "Invalid timestamp format"}), 400
+        # Parse timestamp
+        timestamp, error_response = parse_timestamp(data.get('timestamp'))
+        if error_response:
+            return error_response
 
         # Create event document
         event_doc = {
@@ -58,14 +58,17 @@ def log_event():
         result = events_collection.insert_one(event_doc)
         print(f"✅ Event stored successfully with ID: {event_doc['_id']}")
 
-        return jsonify({
-            "message": "Event logged successfully",
-            "event_id": event_doc['_id'],
-            "timestamp": timestamp.isoformat()
-        }), 201
+        return create_success_response(
+            "Event logged successfully",
+            {
+                "event_id": event_doc['_id'],
+                "timestamp": timestamp.isoformat()
+            },
+            201
+        )
 
     except Exception as e:
-        return jsonify({"error": f"Failed to log event: {str(e)}"}), 500
+        return create_error_response(f"Failed to log event: {str(e)}")
 
 
 @events_blueprint.route('/events/<package_name>', methods=['GET'])
@@ -76,8 +79,11 @@ def get_events(package_name):
 
     try:
         db = AnalyticsConnectionHolder.get_db()
-        if db is None:
-            return jsonify({"error": "Could not connect to the database"}), 500
+
+        # Database connection check
+        is_connected, error_response = check_database_connection(db)
+        if not is_connected:
+            return error_response
 
         # Get query parameters for filtering
         limit = int(request.args.get('limit', 100))
@@ -94,10 +100,10 @@ def get_events(package_name):
                       .sort("timestamp", -1)
                       .limit(limit))
 
-        # Convert ObjectId to string and format dates
+        # Convert timestamps to ISO format
+        timestamp_fields = ['timestamp', 'created_at']
         for event in events:
-            event['timestamp'] = event['timestamp'].isoformat()
-            event['created_at'] = event['created_at'].isoformat()
+            format_timestamps_in_document(event, timestamp_fields)
 
         return jsonify({
             "package_name": package_name,
@@ -106,7 +112,7 @@ def get_events(package_name):
         }), 200
 
     except Exception as e:
-        return jsonify({"error": f"Failed to retrieve events: {str(e)}"}), 500
+        return create_error_response(f"Failed to retrieve events: {str(e)}")
 
 
 @events_blueprint.route('/events/<package_name>/stats', methods=['GET'])
@@ -117,8 +123,11 @@ def get_event_stats(package_name):
 
     try:
         db = AnalyticsConnectionHolder.get_db()
-        if db is None:
-            return jsonify({"error": "Could not connect to the database"}), 500
+
+        # Database connection check
+        is_connected, error_response = check_database_connection(db)
+        if not is_connected:
+            return error_response
 
         events_collection = db[f"{package_name}_events"]
 
@@ -166,4 +175,4 @@ def get_event_stats(package_name):
         }), 200
 
     except Exception as e:
-        return jsonify({"error": f"Failed to get event statistics: {str(e)}"}), 500
+        return create_error_response(f"Failed to get event statistics: {str(e)}")

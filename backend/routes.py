@@ -6,7 +6,7 @@ def register_routes(app):
 
     print("📋 Setting up API routes...")
 
-    # Create blueprints for different controller groups
+    # Import all controllers
     from controllers.events import events_blueprint
     from controllers.users import users_blueprint
     from controllers.sessions import sessions_blueprint
