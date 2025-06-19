@@ -37,7 +37,6 @@ const Dashboard = () => {
     fetchDashboardData();
   }, [fetchDashboardData]);
 
-
   const handleModeChange = (newDemoMode) => {
     setIsDemoMode(newDemoMode);
     console.log(`🔄 Switching to ${newDemoMode ? 'DEMO' : 'LIVE'} mode...`);
@@ -46,12 +45,16 @@ const Dashboard = () => {
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
   const BLUE_COLOR = '#3b82f6';
 
+  /**
+   * Generate metrics based on available data and mode
+   */
   const getMetrics = () => {
     if (!dashboardData) return [];
 
-    const { eventStats, events, userStats, sessionStats, crashReports } = dashboardData;
+    const { eventStats, userStats, sessionStats, crashReports } = dashboardData;
 
     if (isDemoMode) {
+      // Demo mode - use rich mock data
       return [
         {
           title: 'Total Users',
@@ -90,46 +93,62 @@ const Dashboard = () => {
         }
       ];
     } else {
-      // Live mode metrics
+      // Live mode - use real data
       return [
         {
-          title: 'Total Events',
-          value: eventStats?.total_events?.toLocaleString() || '0',
+          title: 'Total Users',
+          value: userStats?.total_users?.toLocaleString() || '0',
           change: 'Real-time data',
-          icon: '📊',
+          icon: '👤',
           isPositive: true
         },
         {
-          title: 'Top Event',
-          value: eventStats?.top_events?.[0]?.name || 'No events',
-          change: `${eventStats?.top_events?.[0]?.value || 0} times`,
-          icon: '🎯',
+          title: 'Active Users',
+          value: userStats?.active_users?.toLocaleString() || '0',
+          change: 'Last 30 days',
+          icon: '👥',
           isPositive: true
         },
         {
-          title: 'Package',
-          value: eventStats?.package_name || selectedPackage,
-          change: 'Active package',
-          icon: '📱',
-          isPositive: true
-        },
-        {
-          title: 'Recent Events',
-          value: events?.events?.length?.toString() || '0',
-          change: 'in latest batch',
+          title: 'Avg. Session',
+          value: sessionStats?.average_session_duration || '0s',
+          change: 'Real sessions',
           icon: '⏱️',
           isPositive: true
         },
         {
-          title: 'API Status',
-          value: 'Connected',
-          change: 'Live API data',
-          icon: '✅',
+          title: 'Total Events',
+          value: eventStats?.total_events?.toLocaleString() || '0',
+          change: 'Live tracking',
+          icon: '📊',
+          isPositive: true
+        },
+        {
+          title: 'Crash Rate',
+          value: crashReports?.crash_rate || '0%',
+          change: 'Current period',
+          icon: '⚠️',
           isPositive: true
         }
       ];
     }
   };
+
+  /**
+   * Create empty state component for charts with no real data
+   */
+  const EmptyChartState = ({ icon, title, description }) => (
+    <div className="h-full flex items-center justify-center text-gray-500">
+      <div className="text-center">
+        <span className="text-4xl mb-2 block">{icon}</span>
+        <p className="font-medium">{title}</p>
+        <p className="text-sm mt-1">{description}</p>
+        <p className="text-xs text-blue-600 mt-2">
+          💡 Use your Android app to generate real data!
+        </p>
+      </div>
+    </div>
+  );
 
   // Show loading state
   if (loading) {
@@ -228,223 +247,443 @@ const Dashboard = () => {
           ))}
         </div>
 
-        {/* Charts Section - Different content based on mode */}
-        {isDemoMode ? (
-          // Demo Mode - Show all rich charts
-          <>
-            {/* User Growth and Retention */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
-                <h2 className="text-lg font-medium text-gray-800">User Growth</h2>
-                <p className="text-sm text-gray-500 mb-4">New user acquisition over time</p>
-                <div className="h-64">
-                  {dashboardData?.userStats?.user_growth && (
+        {/* Charts Section */}
+        {/* User Growth and Session Duration */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
+            <h2 className="text-lg font-medium text-gray-800">
+              {isDemoMode ? 'User Growth' : 'User Growth (Live Data)'}
+            </h2>
+            <p className="text-sm text-gray-500 mb-4">
+              {isDemoMode 
+                ? 'New user acquisition over time' 
+                : 'User growth based on real analytics data'
+              }
+            </p>
+            <div className="h-64">
+              {(() => {
+                if (isDemoMode) {
+                  const demoData = dashboardData?.userStats?.user_growth;
+                  return (
                     <StatLineChart 
-                      data={dashboardData.userStats.user_growth} 
+                      data={demoData} 
                       dataKey="users" 
                       xAxis="month" 
                       color={BLUE_COLOR} 
                     />
-                  )}
-                </div>
-              </div>
+                  );
+                } else {
+                  // Live mode - show real data or empty state
+                  const realData = dashboardData?.userStats?.user_growth;
+                  
+                  if (realData && realData.length > 0) {
+                    return (
+                      <StatLineChart 
+                        data={realData} 
+                        dataKey="users" 
+                        xAxis="date" 
+                        color={BLUE_COLOR} 
+                      />
+                    );
+                  } else {
+                    return (
+                      <EmptyChartState 
+                        icon="📈"
+                        title="User Growth Chart"
+                        description="Not enough user data yet to show growth trends"
+                        isLiveMode={true}
+                      />
+                    );
+                  }
+                }
+              })()}
+            </div>
+          </div>
 
-              <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
-                <h2 className="text-lg font-medium text-gray-800">User Retention</h2>
-                <p className="text-sm text-gray-500 mb-4">Percentage of users who return after first use</p>
-                <div className="h-64">
-                  {dashboardData?.userStats?.user_retention && (
+          <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
+            <h2 className="text-lg font-medium text-gray-800">
+              {isDemoMode ? 'Session Duration' : 'Session Duration (Live Data)'}
+            </h2>
+            <p className="text-sm text-gray-500 mb-4">
+              {isDemoMode 
+                ? 'Distribution of session lengths' 
+                : 'Real session duration patterns'
+              }
+            </p>
+            <div className="h-64">
+              {(() => {
+                if (isDemoMode) {
+                  const demoData = dashboardData?.sessionStats?.session_duration_distribution;
+                  return (
+                    <DistributionPieChart 
+                      data={demoData} 
+                      colors={COLORS} 
+                      dataKey="value" 
+                      nameKey="name" 
+                    />
+                  );
+                } else {
+                  // Live mode - show real data or empty state
+                  const realData = dashboardData?.sessionStats?.session_duration_distribution;
+                  
+                  if (realData && realData.length > 0) {
+                    return (
+                      <DistributionPieChart 
+                        data={realData} 
+                        colors={COLORS} 
+                        dataKey="value" 
+                        nameKey="name" 
+                      />
+                    );
+                  } else {
+                    return (
+                      <EmptyChartState 
+                        icon="⏱️"
+                        title="Session Duration Chart"
+                        description="Need more session data to show duration patterns"
+                        isLiveMode={true}
+                      />
+                    );
+                  }
+                }
+              })()}
+            </div>
+          </div>
+        </div>
+
+        {/* User Growth and Session Duration */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
+            <h2 className="text-lg font-medium text-gray-800">
+              {isDemoMode ? 'User Growth' : 'User Growth (Live Data)'}
+            </h2>
+            <p className="text-sm text-gray-500 mb-4">
+              {isDemoMode 
+                ? 'New user acquisition over time' 
+                : 'Real user growth from your analytics API'
+              }
+            </p>
+            <div className="h-64">
+              {(() => {
+                if (isDemoMode) {
+                  const demoData = dashboardData?.userStats?.user_growth;
+                  return demoData ? (
                     <StatLineChart 
-                      data={dashboardData.userStats.user_retention} 
-                      dataKey="retention" 
-                      xAxis="day" 
+                      data={demoData} 
+                      dataKey="users" 
+                      xAxis="month" 
                       color={BLUE_COLOR} 
                     />
-                  )}
-                </div>
-              </div>
+                  ) : null;
+                } else {
+                  // Live mode - show real data
+                  const realData = dashboardData?.userStats?.user_growth;
+                  
+                  if (realData && realData.length > 0) {
+                    return (
+                      <StatLineChart 
+                        data={realData} 
+                        dataKey="users" 
+                        xAxis="date" 
+                        color={BLUE_COLOR} 
+                      />
+                    );
+                  } else {
+                    return (
+                      <EmptyChartState 
+                        icon="📈"
+                        title="No User Growth Data Yet"
+                        description="Real data will appear here when users register through your Android app"
+                      />
+                    );
+                  }
+                }
+              })()}
             </div>
+          </div>
 
-            {/* Session Duration and Geographic Distribution */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
-                <h2 className="text-lg font-medium text-gray-800">Session Duration</h2>
-                <p className="text-sm text-gray-500 mb-4">Distribution of session lengths</p>
-                <div className="h-64">
-                  {dashboardData?.sessionStats?.session_duration_distribution && (
+          <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
+            <h2 className="text-lg font-medium text-gray-800">
+              {isDemoMode ? 'Session Duration' : 'Session Duration (Live Data)'}
+            </h2>
+            <p className="text-sm text-gray-500 mb-4">
+              {isDemoMode 
+                ? 'Distribution of session lengths' 
+                : 'Real session duration patterns from your app'
+              }
+            </p>
+            <div className="h-64">
+              {(() => {
+                if (isDemoMode) {
+                  const demoData = dashboardData?.sessionStats?.session_duration_distribution;
+                  return demoData ? (
                     <DistributionPieChart 
-                      data={dashboardData.sessionStats.session_duration_distribution} 
+                      data={demoData} 
                       colors={COLORS} 
                       dataKey="value" 
                       nameKey="name" 
                     />
-                  )}
-                </div>
-              </div>
-
-              <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
-                <h2 className="text-lg font-medium text-gray-800">Geographic Distribution</h2>
-                <p className="text-sm text-gray-500 mb-4">Users by country</p>
-                <div className="h-64">
-                  {dashboardData?.userStats?.geographic_distribution && (
-                    <DistributionPieChart 
-                      data={dashboardData.userStats.geographic_distribution} 
-                      colors={COLORS} 
-                      dataKey="value" 
-                      nameKey="name" 
-                    />
-                  )}
-                </div>
-              </div>
+                  ) : null;
+                } else {
+                  // Live mode - show real data
+                  const realData = dashboardData?.sessionStats?.session_duration_distribution;
+                  
+                  if (realData && realData.length > 0) {
+                    return (
+                      <DistributionPieChart 
+                        data={realData} 
+                        colors={COLORS} 
+                        dataKey="value" 
+                        nameKey="name" 
+                      />
+                    );
+                  } else {
+                    return (
+                      <EmptyChartState 
+                        icon="⏱️"
+                        title="No Session Data Yet"
+                        description="Real session patterns will appear when users use your Android app"
+                      />
+                    );
+                  }
+                }
+              })()}
             </div>
+          </div>
+        </div>
 
-            {/* Top Events and Crash Reports */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
-                <h2 className="text-lg font-medium text-gray-800">Top Events</h2>
-                <p className="text-sm text-gray-500 mb-4">Most frequent user actions</p>
-                <div className="h-64">
-                  {dashboardData?.eventStats?.top_events && (
+        {/* Top Events and Geographic Distribution */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
+            <h2 className="text-lg font-medium text-gray-800">
+              {isDemoMode ? 'Top Events' : 'Top Events (Live Data)'}
+            </h2>
+            <p className="text-sm text-gray-500 mb-4">
+              {isDemoMode 
+                ? 'Most frequent user actions' 
+                : 'Real user interactions from your Android app'
+              }
+            </p>
+            <div className="h-64">
+              {(() => {
+                const eventsData = dashboardData?.eventStats?.top_events;
+                
+                if (eventsData && eventsData.length > 0) {
+                  return (
                     <HorizontalBarChart 
-                      data={dashboardData.eventStats.top_events} 
+                      data={eventsData} 
                       color={BLUE_COLOR} 
                       dataKey="value" 
                       categoryKey="name" 
                     />
-                  )}
-                </div>
-              </div>
+                  );
+                } else {
+                  return (
+                    <EmptyChartState 
+                      icon="🎯"
+                      title={isDemoMode ? "Demo Events Chart" : "No Events Yet"}
+                      description={isDemoMode 
+                        ? "Demo events visualization" 
+                        : "Real events will appear when you interact with your Android app"
+                      }
+                    />
+                  );
+                }
+              })()}
+            </div>
+          </div>
 
-              <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
-                <h2 className="text-lg font-medium text-gray-800">Crash Reports</h2>
-                <p className="text-sm text-gray-500 mb-4">Recent app crashes and errors</p>
-                <div className="overflow-x-auto">
-                  {dashboardData?.crashReports?.recent_crashes?.length > 0 ? (
-                    <table className="min-w-full divide-y divide-gray-200">
-                      <thead className="bg-gray-50">
-                        <tr>
-                          <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">Error</th>
-                          <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">Device</th>
-                          <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">Count</th>
-                          <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">Last Seen</th>
+          <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
+            <h2 className="text-lg font-medium text-gray-800">
+              {isDemoMode ? 'Geographic Distribution' : 'User Distribution (Live Data)'}
+            </h2>
+            <p className="text-sm text-gray-500 mb-4">
+              {isDemoMode 
+                ? 'Users by country' 
+                : 'Real geographic distribution of your users'
+              }
+            </p>
+            <div className="h-64">
+              {(() => {
+                if (isDemoMode) {
+                  const demoData = dashboardData?.userStats?.geographic_distribution;
+                  return demoData ? (
+                    <DistributionPieChart 
+                      data={demoData} 
+                      colors={COLORS} 
+                      dataKey="value" 
+                      nameKey="name" 
+                    />
+                  ) : null;
+                } else {
+                  // Live mode - show real geographic data
+                  const realData = dashboardData?.userStats?.geographic_distribution;
+                  
+                  if (realData && realData.length > 0) {
+                    return (
+                      <DistributionPieChart 
+                        data={realData} 
+                        colors={COLORS} 
+                        dataKey="value" 
+                        nameKey="name" 
+                      />
+                    );
+                  } else {
+                    return (
+                      <EmptyChartState 
+                        icon="🌍"
+                        title="No Geographic Data Yet"
+                        description="Real user location data will appear when users register"
+                      />
+                    );
+                  }
+                }
+              })()}
+            </div>
+          </div>
+        </div>
+
+        {/* Recent Activity and Crash Reports */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
+            <h2 className="text-lg font-medium text-gray-800">
+              {isDemoMode ? 'Recent Activity' : 'Recent Events (Live Data)'}
+            </h2>
+            <p className="text-sm text-gray-500 mb-4">
+              {isDemoMode 
+                ? 'Latest user interactions' 
+                : 'Real-time events from your app'
+              }
+            </p>
+            <div className="overflow-x-auto max-h-64">
+              {(() => {
+                const recentEvents = dashboardData?.events?.events;
+                
+                return recentEvents && recentEvents.length > 0 ? (
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">Event</th>
+                        <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">User</th>
+                        <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">Time</th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {recentEvents.slice(0, 8).map((event, index) => (
+                        <tr key={event._id || index}>
+                          <td className="px-3 py-2 text-sm text-gray-800">{event.event_type}</td>
+                          <td className="px-3 py-2 text-sm text-gray-600">
+                            {event.user_id ? event.user_id.substring(0, 8) + '...' : 'Anonymous'}
+                          </td>
+                          <td className="px-3 py-2 text-sm text-gray-500">
+                            {new Date(event.timestamp).toLocaleTimeString()}
+                          </td>
                         </tr>
-                      </thead>
-                      <tbody className="bg-white divide-y divide-gray-200">
-                        {dashboardData.crashReports.recent_crashes.map((crash, index) => (
-                          <tr key={index}>
-                            <td className="px-3 py-2 text-sm text-red-600">{crash.error}</td>
-                            <td className="px-3 py-2 text-sm text-gray-800">{crash.device}</td>
-                            <td className="px-3 py-2 text-sm text-gray-800">{crash.count}</td>
-                            <td className="px-3 py-2 text-sm text-gray-500">{crash.lastSeen}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  ) : (
-                    <div className="h-48 flex items-center justify-center text-gray-500">
-                      <p>No crash data available</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          </>
-        ) : (
-          // Live Mode - Show only available data
-          <>
-            {/* Daily Events Chart (if available) */}
-            {dashboardData?.eventStats?.daily_events && dashboardData.eventStats.daily_events.length > 0 && (
-              <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
-                <h2 className="text-lg font-medium text-gray-800">Daily Events</h2>
-                <p className="text-sm text-gray-500 mb-4">Event activity over time (Real API Data)</p>
-                <div className="h-64">
-                  <StatLineChart 
-                    data={dashboardData.eventStats.daily_events} 
-                    dataKey="events" 
-                    xAxis="date" 
-                    color={BLUE_COLOR} 
-                  />
-                </div>
-              </div>
-            )}
-
-            {/* Top Events and Recent Activity */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
-                <h2 className="text-lg font-medium text-gray-800">Top Events</h2>
-                <p className="text-sm text-gray-500 mb-4">Most frequent user actions (Real API Data)</p>
-                {dashboardData?.eventStats?.top_events && dashboardData.eventStats.top_events.length > 0 ? (
-                  <div className="h-64">
-                    <HorizontalBarChart 
-                      data={dashboardData.eventStats.top_events} 
-                      color={BLUE_COLOR} 
-                      dataKey="value" 
-                      categoryKey="name" 
-                    />
-                  </div>
+                      ))}
+                    </tbody>
+                  </table>
                 ) : (
-                  <div className="h-64 flex items-center justify-center text-gray-500">
+                  <div className="h-48 flex items-center justify-center text-gray-500">
                     <div className="text-center">
-                      <span className="text-4xl mb-2 block">📊</span>
-                      <p>No events data available</p>
-                      <p className="text-sm">Generate some events in your Android app!</p>
+                      <span className="text-4xl mb-2 block">📱</span>
+                      <p>No recent activity</p>
+                      <p className="text-sm">
+                        {isDemoMode 
+                          ? 'Demo events would appear here' 
+                          : 'Open your Android app and interact with it!'
+                        }
+                      </p>
                     </div>
                   </div>
-                )}
-              </div>
+                );
+              })()}
+            </div>
+          </div>
 
-              <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
-                <h2 className="text-lg font-medium text-gray-800">Recent Events</h2>
-                <p className="text-sm text-gray-500 mb-4">Latest events from your app (Real API Data)</p>
-                <div className="overflow-x-auto">
-                  {dashboardData?.events?.events && dashboardData.events.events.length > 0 ? (
-                    <table className="min-w-full divide-y divide-gray-200">
-                      <thead className="bg-gray-50">
-                        <tr>
-                          <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">Event</th>
-                          <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">User ID</th>
-                          <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">Time</th>
+          <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
+            <h2 className="text-lg font-medium text-gray-800">
+              {isDemoMode ? 'Crash Reports' : 'Crash Reports (Live Data)'}
+            </h2>
+            <p className="text-sm text-gray-500 mb-4">
+              {isDemoMode 
+                ? 'Recent app crashes and errors' 
+                : 'Real crash reports from your app'
+              }
+            </p>
+            <div className="overflow-x-auto max-h-64">
+              {(() => {
+                const crashes = dashboardData?.crashReports?.recent_crashes;
+                
+                return crashes && crashes.length > 0 ? (
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">Error</th>
+                        <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">Device</th>
+                        <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">Count</th>
+                        <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">Last Seen</th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {crashes.slice(0, 5).map((crash, index) => (
+                        <tr key={index}>
+                          <td className="px-3 py-2 text-sm text-red-600">{crash.error}</td>
+                          <td className="px-3 py-2 text-sm text-gray-800">{crash.device}</td>
+                          <td className="px-3 py-2 text-sm text-gray-800">{crash.count}</td>
+                          <td className="px-3 py-2 text-sm text-gray-500">{crash.lastSeen}</td>
                         </tr>
-                      </thead>
-                      <tbody className="bg-white divide-y divide-gray-200">
-                        {dashboardData.events.events.slice(0, 8).map((event, index) => (
-                          <tr key={event._id || index}>
-                            <td className="px-3 py-2 text-sm text-gray-800">{event.event_type}</td>
-                            <td className="px-3 py-2 text-sm text-gray-800">{event.user_id || 'Anonymous'}</td>
-                            <td className="px-3 py-2 text-sm text-gray-500">
-                              {new Date(event.timestamp).toLocaleString()}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  ) : (
-                    <div className="h-48 flex items-center justify-center text-gray-500">
-                      <div className="text-center">
-                        <span className="text-4xl mb-2 block">📱</span>
-                        <p>No recent events</p>
-                        <p className="text-sm">Open your Android app and interact with it!</p>
-                      </div>
+                      ))}
+                    </tbody>
+                  </table>
+                ) : (
+                  <div className="h-48 flex items-center justify-center text-gray-500">
+                    <div className="text-center">
+                      <span className="text-4xl mb-2 block">✅</span>
+                      <p>No crashes reported</p>
+                      <p className="text-sm">
+                        {isDemoMode 
+                          ? 'Demo crash data would appear here' 
+                          : 'Your app is running smoothly!'
+                        }
+                      </p>
                     </div>
-                  )}
-                </div>
-              </div>
+                  </div>
+                );
+              })()}
             </div>
+          </div>
+        </div>
 
-            {/* Live API Status */}
-            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-              <div className="flex items-center">
-                <span className="text-green-500 text-xl mr-3">✅</span>
-                <div>
-                  <h3 className="font-medium text-green-800">Connected to Live Analytics API</h3>
-                  <p className="text-green-600 text-sm">
-                    Showing real data from your backend • Last updated: {new Date().toLocaleTimeString()}
-                  </p>
-                </div>
-              </div>
+        {/* Data Source Indicator */}
+        <div className={`p-4 rounded-lg border-2 ${
+          isDemoMode 
+            ? 'bg-blue-50 border-blue-200' 
+            : 'bg-green-50 border-green-200'
+        }`}>
+          <div className="flex items-center">
+            <span className={`text-xl mr-3 ${isDemoMode ? '📊' : '✅'}`}>
+              {isDemoMode ? '📊' : '✅'}
+            </span>
+            <div>
+              <h3 className={`font-medium ${
+                isDemoMode ? 'text-blue-800' : 'text-green-800'
+              }`}>
+                {isDemoMode 
+                  ? 'Demo Mode - Rich Sample Data' 
+                  : 'Live Mode - Real Analytics Data'
+                }
+              </h3>
+              <p className={`text-sm ${
+                isDemoMode ? 'text-blue-600' : 'text-green-600'
+              }`}>
+                {isDemoMode 
+                  ? 'Showing comprehensive analytics capabilities with realistic demo data'
+                  : `Connected to live API • Last updated: ${new Date().toLocaleTimeString()} • Showing real data from your Android app`
+                }
+              </p>
             </div>
-          </>
-        )}
+          </div>
+        </div>
       </main>
     </div>
   );

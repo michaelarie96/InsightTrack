@@ -1,6 +1,3 @@
-from flask import Blueprint
-
-
 def register_routes(app):
     """Register all API routes with the Flask app"""
 
@@ -11,12 +8,14 @@ def register_routes(app):
     from controllers.users import users_blueprint
     from controllers.sessions import sessions_blueprint
     from controllers.crashes import crashes_blueprint
+    from controllers.packages import packages_blueprint
 
     # Register blueprints with URL prefixes
     app.register_blueprint(events_blueprint, url_prefix='/analytics')
     app.register_blueprint(users_blueprint, url_prefix='/analytics')
     app.register_blueprint(sessions_blueprint, url_prefix='/analytics')
     app.register_blueprint(crashes_blueprint, url_prefix='/analytics')
+    app.register_blueprint(packages_blueprint, url_prefix='/analytics')
 
     print("✅ All API routes registered!")
 
@@ -31,6 +30,7 @@ def register_routes(app):
                 "users": "/analytics/users",
                 "sessions": "/analytics/sessions",
                 "crashes": "/analytics/crashes",
+                "packages": "/analytics/packages",
                 "health": "/health"
             }
         }, 200

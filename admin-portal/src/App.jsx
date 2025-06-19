@@ -4,7 +4,7 @@ import Sidebar from './Sidebar';
 import ApiTest from './components/ApiTest';
 
 function App() {
-  const [showApiTest, setShowApiTest] = useState(true); // Start with test visible
+  const [showApiTest, setShowApiTest] = useState(false);
 
   return (
     <div className="App flex">

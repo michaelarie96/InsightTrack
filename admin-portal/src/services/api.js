@@ -149,12 +149,27 @@ export const analyticsAPI = {
 
   // ===== UTILITY METHODS =====
 
-  // Get all packages (need to add this endpoint to backend later)
-  async getPackages() {
-    // For now, returning a default package
-    // TODO: Add a real endpoint to get all packages
+// Get all packages from the backend
+async getPackages() {
+  try {
+    const response = await apiClient.get('/analytics/packages');
+    return response.data.packages || [];
+  } catch (error) {
+    console.warn('⚠️ Could not fetch packages from API, using default:', error.message);
+    // Fallback to default package if API fails
     return ['com.example.androidapi'];
-  },
+  }
+},
+
+// Get package summary
+async getPackageSummary(packageName) {
+  try {
+    const response = await apiClient.get(`/analytics/packages/${packageName}/summary`);
+    return response.data;
+  } catch (error) {
+    throw new Error(`Failed to fetch package summary: ${error.message}`);
+  }
+},
 
   // Test data connection
   async testConnection() {

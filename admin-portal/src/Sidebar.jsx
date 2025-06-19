@@ -6,7 +6,7 @@ const Sidebar = () => {
       {/* App Title */}
       <div className="h-16 flex items-center px-6 border-b border-gray-200">
         <div className="flex items-center">
-          <span className="text-xl font-semibold text-gray-800">Analytics API</span>
+          <span className="text-xl font-semibold text-gray-800">InsightTrack</span>
         </div>
       </div>
       
