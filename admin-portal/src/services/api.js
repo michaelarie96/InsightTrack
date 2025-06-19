@@ -51,6 +51,8 @@ export const analyticsAPI = {
     }
   },
 
+  // ===== EVENTS API =====
+  
   // Get events for a specific package
   async getEvents(packageName, limit = 100) {
     try {
@@ -73,10 +75,84 @@ export const analyticsAPI = {
     }
   },
 
-  // Get all packages (need to add this endpoint to backend)
+  // ===== USERS API =====
+  
+  // Get users for a specific package
+  async getUsers(packageName, limit = 100) {
+    try {
+      const response = await apiClient.get(`/analytics/users/${packageName}`, {
+        params: { limit }
+      });
+      return response.data;
+    } catch (error) {
+      throw new Error(`Failed to fetch users: ${error.message}`);
+    }
+  },
+
+  // Get user statistics for dashboard
+  async getUserStats(packageName) {
+    try {
+      const response = await apiClient.get(`/analytics/users/${packageName}/stats`);
+      return response.data;
+    } catch (error) {
+      throw new Error(`Failed to fetch user statistics: ${error.message}`);
+    }
+  },
+
+  // ===== SESSIONS API =====
+  
+  // Get sessions for a specific package
+  async getSessions(packageName, limit = 100) {
+    try {
+      const response = await apiClient.get(`/analytics/sessions/${packageName}`, {
+        params: { limit }
+      });
+      return response.data;
+    } catch (error) {
+      throw new Error(`Failed to fetch sessions: ${error.message}`);
+    }
+  },
+
+  // Get session statistics for dashboard
+  async getSessionStats(packageName) {
+    try {
+      const response = await apiClient.get(`/analytics/sessions/${packageName}/stats`);
+      return response.data;
+    } catch (error) {
+      throw new Error(`Failed to fetch session statistics: ${error.message}`);
+    }
+  },
+
+  // ===== CRASHES API =====
+  
+  // Get crash reports for a specific package
+  async getCrashes(packageName, limit = 50) {
+    try {
+      const response = await apiClient.get(`/analytics/crashes/${packageName}`, {
+        params: { limit }
+      });
+      return response.data;
+    } catch (error) {
+      throw new Error(`Failed to fetch crash reports: ${error.message}`);
+    }
+  },
+
+  // Get crash statistics for dashboard
+  async getCrashStats(packageName) {
+    try {
+      const response = await apiClient.get(`/analytics/crashes/${packageName}/stats`);
+      return response.data;
+    } catch (error) {
+      throw new Error(`Failed to fetch crash statistics: ${error.message}`);
+    }
+  },
+
+  // ===== UTILITY METHODS =====
+
+  // Get all packages (need to add this endpoint to backend later)
   async getPackages() {
     // For now, returning a default package
-    // Need to add a real endpoint to get all packages
+    // TODO: Add a real endpoint to get all packages
     return ['com.example.androidapi'];
   },
 

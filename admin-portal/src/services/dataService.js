@@ -77,66 +77,105 @@ class DataService {
   }
 
   /**
-   * Get user statistics (only available in demo mode for now)
+   * Get user statistics
    */
-  async getUserStats(packageName) {
-    try {
-      if (this.isDemoMode) {
-        return await mockDataService.getUserStats(packageName);
-      } else {
-        // In live mode, return basic info since we don't have user endpoints yet
-        return {
-          total_users: 'N/A',
-          active_users: 'N/A',
-          note: 'User analytics coming soon in live mode'
-        };
-      }
-    } catch (error) {
-      console.error(`❌ Error fetching user stats:`, error);
+async getUserStats(packageName) {
+  try {
+    if (this.isDemoMode) {
+      return await mockDataService.getUserStats(packageName);
+    } else {
+      // Use real API for live mode
+      const result = await analyticsAPI.getUserStats(packageName);
+      return {
+        ...result,
+        _metadata: {
+          source: 'live',
+          timestamp: new Date().toISOString(),
+          package_name: packageName
+        }
+      };
+    }
+  } catch (error) {
+    console.error(`❌ Error fetching user stats:`, error);
+    if (this.isDemoMode) {
       throw error;
+    } else {
+      // Fallback to basic info if API fails
+      return {
+        total_users: 'API Error',
+        active_users: 'API Error',
+        note: 'Failed to load user data from API'
+      };
     }
   }
+}
 
   /**
-   * Get session statistics (only available in demo mode for now)
+   * Get session statistics
    */
-  async getSessionStats(packageName) {
-    try {
-      if (this.isDemoMode) {
-        return await mockDataService.getSessionStats(packageName);
-      } else {
-        return {
-          total_sessions: 'N/A',
-          average_session_duration: 'N/A',
-          note: 'Session analytics coming soon in live mode'
-        };
-      }
-    } catch (error) {
-      console.error(`❌ Error fetching session stats:`, error);
+async getSessionStats(packageName) {
+  try {
+    if (this.isDemoMode) {
+      return await mockDataService.getSessionStats(packageName);
+    } else {
+      // Use real API for live mode
+      const result = await analyticsAPI.getSessionStats(packageName);
+      return {
+        ...result,
+        _metadata: {
+          source: 'live',
+          timestamp: new Date().toISOString(),
+          package_name: packageName
+        }
+      };
+    }
+  } catch (error) {
+    console.error(`❌ Error fetching session stats:`, error);
+    if (this.isDemoMode) {
       throw error;
+    } else {
+      return {
+        total_sessions: 'API Error',
+        average_session_duration: 'API Error',
+        note: 'Failed to load session data from API'
+      };
     }
   }
+}
 
   /**
-   * Get crash reports (only available in demo mode for now)
+   * Get crash reports
    */
-  async getCrashReports(packageName) {
-    try {
-      if (this.isDemoMode) {
-        return await mockDataService.getCrashReports(packageName);
-      } else {
-        return {
-          total_crashes: 'N/A',
-          crash_rate: 'N/A',
-          recent_crashes: [],
-          note: 'Crash reporting coming soon in live mode'
-        };
-      }
-    } catch (error) {
-      console.error(`❌ Error fetching crash reports:`, error);
+async getCrashReports(packageName) {
+  try {
+    if (this.isDemoMode) {
+      return await mockDataService.getCrashReports(packageName);
+    } else {
+      // Use real API for live mode
+      const result = await analyticsAPI.getCrashStats(packageName);
+      return {
+        ...result,
+        _metadata: {
+          source: 'live',
+          timestamp: new Date().toISOString(),
+          package_name: packageName
+        }
+      };
+    }
+  } catch (error) {
+    console.error(`❌ Error fetching crash reports:`, error);
+    if (this.isDemoMode) {
       throw error;
+    } else {
+      return {
+        total_crashes: 'API Error',
+        crash_rate: 'API Error',
+        recent_crashes: [],
+        note: 'Failed to load crash data from API'
+      };
     }
   }
+}
 
   /**
    * Health check

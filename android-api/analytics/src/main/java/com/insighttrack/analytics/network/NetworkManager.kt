@@ -1,8 +1,14 @@
 package com.insighttrack.analytics.network
 
 import android.content.Context
+import com.insighttrack.analytics.models.CrashRequest
+import com.insighttrack.analytics.models.CrashResponse
 import com.insighttrack.analytics.models.EventRequest
 import com.insighttrack.analytics.models.EventResponse
+import com.insighttrack.analytics.models.SessionRequest
+import com.insighttrack.analytics.models.SessionResponse
+import com.insighttrack.analytics.models.UserRegistrationRequest
+import com.insighttrack.analytics.models.UserRegistrationResponse
 import com.insighttrack.analytics.storage.OfflineEventStorage
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -153,6 +159,115 @@ class NetworkManager(private val context: Context, private val baseUrl: String) 
 
                 // Store offline for retry later
                 offlineStorage.storeEvent(eventRequest)
+                callback.onError(errorMsg)
+            }
+        })
+    }
+
+    /**
+     * Send user registration to the API
+     */
+    fun sendUserRegistration(userRequest: UserRegistrationRequest, callback: EventCallback<UserRegistrationResponse>) {
+        println("👤 Registering user: ${userRequest.user_id}")
+
+        // Check if network is available first
+        if (!networkMonitor.isNetworkCurrentlyAvailable()) {
+            println("📴 No internet connection - user registration will retry later")
+            callback.onError("No internet connection")
+            return
+        }
+
+        // Send the request
+        val call = apiService.registerUser(userRequest)
+
+        call.enqueue(object : Callback<UserRegistrationResponse> {
+            override fun onResponse(call: Call<UserRegistrationResponse>, response: Response<UserRegistrationResponse>) {
+                if (response.isSuccessful) {
+                    val userResponse = response.body()
+                    println("✅ User registration successful: ${userResponse?.message}")
+                    callback.onSuccess(userResponse)
+                } else {
+                    val errorMsg = "Failed to register user: ${response.code()} ${response.message()}"
+                    println("❌ $errorMsg")
+                    callback.onError(errorMsg)
+                }
+            }
+
+            override fun onFailure(call: Call<UserRegistrationResponse>, t: Throwable) {
+                val errorMsg = "User registration network error: ${t.message}"
+                println("❌ $errorMsg")
+                callback.onError(errorMsg)
+            }
+        })
+    }
+
+    /**
+     * Send session data to the API
+     */
+    fun sendSession(sessionRequest: SessionRequest, callback: EventCallback<SessionResponse>) {
+        println("🕐 Sending session ${sessionRequest.action}: ${sessionRequest.session_id}")
+
+        // Check if network is available first
+        if (!networkMonitor.isNetworkCurrentlyAvailable()) {
+            println("📴 No internet connection - session will retry later")
+            callback.onError("No internet connection")
+            return
+        }
+
+        val call = apiService.sendSession(sessionRequest)
+
+        call.enqueue(object : Callback<SessionResponse> {
+            override fun onResponse(call: Call<SessionResponse>, response: Response<SessionResponse>) {
+                if (response.isSuccessful) {
+                    val sessionResponse = response.body()
+                    println("✅ Session ${sessionRequest.action} successful: ${sessionResponse?.message}")
+                    callback.onSuccess(sessionResponse)
+                } else {
+                    val errorMsg = "Failed to send session: ${response.code()} ${response.message()}"
+                    println("❌ $errorMsg")
+                    callback.onError(errorMsg)
+                }
+            }
+
+            override fun onFailure(call: Call<SessionResponse>, t: Throwable) {
+                val errorMsg = "Session network error: ${t.message}"
+                println("❌ $errorMsg")
+                callback.onError(errorMsg)
+            }
+        })
+    }
+
+    /**
+     * Send crash report to the API
+     */
+    fun sendCrash(crashRequest: CrashRequest, callback: EventCallback<CrashResponse>) {
+        println("💥 Sending crash report: ${crashRequest.error_type}")
+
+        // Check if network is available first
+        if (!networkMonitor.isNetworkCurrentlyAvailable()) {
+            println("📴 No internet connection - crash report will retry later")
+            callback.onError("No internet connection")
+            return
+        }
+
+        val call = apiService.sendCrash(crashRequest)
+
+        call.enqueue(object : Callback<CrashResponse> {
+            override fun onResponse(call: Call<CrashResponse>, response: Response<CrashResponse>) {
+                if (response.isSuccessful) {
+                    val crashResponse = response.body()
+                    println("✅ Crash report sent successfully: ${crashResponse?.message}")
+                    callback.onSuccess(crashResponse)
+                } else {
+                    val errorMsg = "Failed to send crash report: ${response.code()} ${response.message()}"
+                    println("❌ $errorMsg")
+                    callback.onError(errorMsg)
+                }
+            }
+
+            override fun onFailure(call: Call<CrashResponse>, t: Throwable) {
+                val errorMsg = "Crash report network error: ${t.message}"
+                println("❌ $errorMsg")
                 callback.onError(errorMsg)
             }
         })

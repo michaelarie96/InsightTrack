@@ -1,8 +1,14 @@
 package com.insighttrack.analytics
 
 import android.content.Context
+import com.insighttrack.analytics.models.CrashRequest
+import com.insighttrack.analytics.models.CrashResponse
 import com.insighttrack.analytics.models.EventRequest
 import com.insighttrack.analytics.models.EventResponse
+import com.insighttrack.analytics.models.SessionRequest
+import com.insighttrack.analytics.models.SessionResponse
+import com.insighttrack.analytics.models.UserRegistrationRequest
+import com.insighttrack.analytics.models.UserRegistrationResponse
 import com.insighttrack.analytics.network.EventCallback
 import com.insighttrack.analytics.network.NetworkManager
 import java.util.*
@@ -85,20 +91,97 @@ class InsightTrackSDK private constructor(
     // User Management
     fun setUserId(userId: String) {
         this.userId = userId
+
+        registerUser(userId)
+
         trackEvent("user_identified", mapOf("user_id" to userId))
     }
 
+
+    // Register user with the backend API
+    private fun registerUser(userId: String) {
+        if (!::networkManager.isInitialized) {
+            println("⚠️ Network manager not initialized, cannot register user")
+            return
+        }
+
+        // Create user registration request using our data class
+        val userRequest = UserRegistrationRequest(
+            package_name = packageName,
+            user_id = userId,
+            timestamp = System.currentTimeMillis(),
+            device_info = getDeviceInfo(),
+            country = "Unknown" // You can enhance this with location detection later
+        )
+
+        networkManager.sendUserRegistration(userRequest, object : EventCallback<UserRegistrationResponse> {
+            override fun onSuccess(data: UserRegistrationResponse?) {
+                println("✅ User registered successfully: ${data?.message}")
+            }
+
+            override fun onError(error: String) {
+                println("⚠️ User registration failed: $error")
+            }
+        })
+    }
     // Session Management
     fun startSession() {
         sessionId = UUID.randomUUID().toString()
         sessionStartTime = System.currentTimeMillis()
+
+        sendSessionToBackend("start")
+
         trackEvent("session_start")
     }
 
     fun endSession() {
+        if (sessionId == null) {
+            println("⚠️ No active session to end")
+            return
+        }
+
         val duration = System.currentTimeMillis() - sessionStartTime
+
+        sendSessionToBackend("end")
+
         trackEvent("session_end", mapOf("duration_ms" to duration))
+
         sessionId = null
+    }
+
+    /**
+     * Send session start/end to backend API
+     */
+    private fun sendSessionToBackend(action: String) {
+        if (!::networkManager.isInitialized) {
+            println("⚠️ Network manager not initialized, cannot send session")
+            return
+        }
+
+        val currentSessionId = sessionId
+        if (currentSessionId == null) {
+            println("⚠️ No session ID available")
+            return
+        }
+
+        val sessionRequest = SessionRequest(
+            package_name = packageName,
+            session_id = currentSessionId,
+            action = action,
+            user_id = userId,
+            timestamp = System.currentTimeMillis(),
+            device_info = getDeviceInfo()
+        )
+
+        networkManager.sendSession(sessionRequest, object : EventCallback<SessionResponse> {
+            override fun onSuccess(data: SessionResponse?) {
+                println("✅ Session $action sent successfully: ${data?.message}")
+            }
+
+            override fun onError(error: String) {
+                println("⚠️ Session $action failed: $error")
+            }
+        })
     }
 
     // Screen Tracking
@@ -183,15 +266,61 @@ class InsightTrackSDK private constructor(
 
     // Error Tracking
     fun logCrash(exception: Throwable) {
+        val errorType = exception.javaClass.simpleName
+        val errorMessage = exception.message ?: "Unknown error"
+        val stackTrace = exception.stackTraceToString()
+
+        // Send crash to backend
+        sendCrashToBackend(errorType, errorMessage, stackTrace)
+
+        // Also track as an event
         trackEvent("app_crash", mapOf(
-            "error_type" to exception.javaClass.simpleName,
-            "error_message" to (exception.message ?: "Unknown error"),
-            "stack_trace" to exception.stackTraceToString()
+            "error_type" to errorType,
+            "error_message" to errorMessage,
+            "stack_trace" to stackTrace
         ))
     }
 
     fun logError(errorType: String, message: String) {
-        trackEvent("app_error", mapOf("error_type" to errorType, "error_message" to message))
+        // Send error to backend (treat as crash with empty stack trace)
+        sendCrashToBackend(errorType, message, "")
+
+        // Also track as an event
+        trackEvent("app_error", mapOf(
+            "error_type" to errorType,
+            "error_message" to message
+        ))
+    }
+
+    /**
+     * Send crash/error to backend API
+     */
+    private fun sendCrashToBackend(errorType: String, errorMessage: String, stackTrace: String) {
+        if (!::networkManager.isInitialized) {
+            println("⚠️ Network manager not initialized, cannot send crash report")
+            return
+        }
+
+        val crashRequest = CrashRequest(
+            package_name = packageName,
+            error_type = errorType,
+            error_message = errorMessage,
+            stack_trace = stackTrace,
+            user_id = userId,
+            session_id = sessionId,
+            timestamp = System.currentTimeMillis(),
+            device_info = getDeviceInfo()
+        )
+
+        networkManager.sendCrash(crashRequest, object : EventCallback<CrashResponse> {
+            override fun onSuccess(data: CrashResponse?) {
+                println("✅ Crash report sent successfully: ${data?.message}")
+            }
+
+            override fun onError(error: String) {
+                println("⚠️ Crash report failed: $error")
+            }
+        })
     }
 
     // Device Information
