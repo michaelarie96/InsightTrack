@@ -82,7 +82,7 @@ export const mockDataService = {
   },
 
   /**
-   * Get mock user analytics
+   * Get mock user analytics with enhanced growth and retention data
    */
   async getUserStats(packageName) {
     await simulateDelay();
@@ -92,30 +92,56 @@ export const mockDataService = {
       total_users: 24521,
       active_users: 18432,
       new_users_today: 342,
+      
+      // Enhanced user growth over last 30 days (daily new users)
       user_growth: [
-        { month: 'Jan', users: 4000 },
-        { month: 'Feb', users: 4300 },
-        { month: 'Mar', users: 4500 },
-        { month: 'Apr', users: 4800 },
-        { month: 'May', users: 5200 },
-        { month: 'Jun', users: 5600 },
-        { month: 'Jul', users: 6000 }
+        { date: '2024-01-01', users: 89, month: 'Jan' },
+        { date: '2024-01-02', users: 124, month: 'Jan' },
+        { date: '2024-01-03', users: 156, month: 'Jan' },
+        { date: '2024-01-04', users: 134, month: 'Jan' },
+        { date: '2024-01-05', users: 98, month: 'Jan' },
+        { date: '2024-01-06', users: 67, month: 'Jan' }, // Weekend dip
+        { date: '2024-01-07', users: 73, month: 'Jan' },
+        { date: '2024-01-08', users: 142, month: 'Jan' }, // Monday spike
+        { date: '2024-01-09', users: 167, month: 'Jan' },
+        { date: '2024-01-10', users: 189, month: 'Jan' },
+        { date: '2024-01-11', users: 203, month: 'Jan' },
+        { date: '2024-01-12', users: 178, month: 'Jan' },
+        { date: '2024-01-13', users: 156, month: 'Jan' },
+        { date: '2024-01-14', users: 134, month: 'Jan' },
+        { date: '2024-01-15', users: 298, month: 'Jan' }, // Fictional marketing campaign
+        { date: '2024-01-16', users: 342, month: 'Jan' },
+        { date: '2024-01-17', users: 387, month: 'Jan' },
+        { date: '2024-01-18', users: 356, month: 'Jan' },
+        { date: '2024-01-19', users: 289, month: 'Jan' },
+        { date: '2024-01-20', users: 234, month: 'Jan' },
+        { date: '2024-01-21', users: 198, month: 'Jan' },
+        { date: '2024-01-22', users: 267, month: 'Jan' },
+        { date: '2024-01-23', users: 289, month: 'Jan' },
+        { date: '2024-01-24', users: 312, month: 'Jan' }
       ],
+      
+      // User retention analysis (realistic retention curve)
       user_retention: [
-        { day: 'Day 1', retention: 100 },
-        { day: 'Day 3', retention: 68 },
-        { day: 'Day 7', retention: 56 },
-        { day: 'Day 14', retention: 45 },
-        { day: 'Day 30', retention: 30 },
-        { day: 'Day 60', retention: 23 },
-        { day: 'Day 90', retention: 17 }
+        { day: 'Day 1', retention: 100.0 }, // Everyone starts at 100%
+        { day: 'Day 3', retention: 68.4 },  // Typical 3-day retention
+        { day: 'Day 7', retention: 45.2 },  // Week retention
+        { day: 'Day 14', retention: 32.8 }, // Two week retention  
+        { day: 'Day 30', retention: 22.1 }  // Monthly retention
       ],
+      
+      // Geographic distribution (enhanced with more countries)
       geographic_distribution: [
         { name: 'United States', value: 34.5 },
         { name: 'India', value: 14.9 },
         { name: 'Germany', value: 8.6 },
         { name: 'Japan', value: 6.2 },
-        { name: 'Other', value: 28.3 }
+        { name: 'United Kingdom', value: 5.8 },
+        { name: 'Brazil', value: 4.3 },
+        { name: 'Canada', value: 3.7 },
+        { name: 'France', value: 3.2 },
+        { name: 'Australia', value: 2.9 },
+        { name: 'Other', value: 15.9 }
       ]
     };
   },
@@ -141,21 +167,105 @@ export const mockDataService = {
   },
 
   /**
-   * Get mock crash reports
+   * Get mock crash reports with enhanced analytics
    */
   async getCrashReports(packageName) {
     await simulateDelay();
     
     return {
       package_name: packageName,
-      total_crashes: 72,
-      crash_rate: '0.82%',
+      total_crashes: 1247,
+      total_crash_types: 12,
+      crash_rate: '2.34%',
+      
+      // Daily crash trends over 30 days
+      daily_crash_trends: [
+        { date: '2024-01-01', crashes: 45 },
+        { date: '2024-01-02', crashes: 52 },
+        { date: '2024-01-03', crashes: 38 },
+        { date: '2024-01-04', crashes: 41 },
+        { date: '2024-01-05', crashes: 67 }, // Spike after weekend
+        { date: '2024-01-06', crashes: 33 },
+        { date: '2024-01-07', crashes: 29 },
+        { date: '2024-01-08', crashes: 44 },
+        { date: '2024-01-09', crashes: 38 },
+        { date: '2024-01-10', crashes: 35 },
+        { date: '2024-01-11', crashes: 42 },
+        { date: '2024-01-12', crashes: 89 }, // Major spike (new release)
+        { date: '2024-01-13', crashes: 76 },
+        { date: '2024-01-14', crashes: 54 },
+        { date: '2024-01-15', crashes: 31 }, // Hotfix deployed
+        { date: '2024-01-16', crashes: 28 },
+        { date: '2024-01-17', crashes: 24 },
+        { date: '2024-01-18', crashes: 26 },
+        { date: '2024-01-19', crashes: 22 },
+        { date: '2024-01-20', crashes: 19 },
+        { date: '2024-01-21', crashes: 17 },
+        { date: '2024-01-22', crashes: 21 },
+        { date: '2024-01-23', crashes: 18 },
+        { date: '2024-01-24', crashes: 15 }
+      ],
+      
+      // Crash rate trends (percentage)
+      crash_rate_trends: [
+        { date: '2024-01-01', crash_rate: 3.2 },
+        { date: '2024-01-02', crash_rate: 3.8 },
+        { date: '2024-01-03', crash_rate: 2.9 },
+        { date: '2024-01-04', crash_rate: 3.1 },
+        { date: '2024-01-05', crash_rate: 4.7 },
+        { date: '2024-01-06', crash_rate: 2.4 },
+        { date: '2024-01-07', crash_rate: 2.1 },
+        { date: '2024-01-08', crash_rate: 3.2 },
+        { date: '2024-01-09', crash_rate: 2.8 },
+        { date: '2024-01-10', crash_rate: 2.6 },
+        { date: '2024-01-11', crash_rate: 3.1 },
+        { date: '2024-01-12', crash_rate: 6.4 }, // Peak crash rate
+        { date: '2024-01-13', crash_rate: 5.5 },
+        { date: '2024-01-14', crash_rate: 3.9 },
+        { date: '2024-01-15', crash_rate: 2.2 }, // Recovery
+        { date: '2024-01-16', crash_rate: 2.0 },
+        { date: '2024-01-17', crash_rate: 1.7 },
+        { date: '2024-01-18', crash_rate: 1.9 },
+        { date: '2024-01-19', crash_rate: 1.6 },
+        { date: '2024-01-20', crash_rate: 1.4 },
+        { date: '2024-01-21', crash_rate: 1.2 },
+        { date: '2024-01-22', crash_rate: 1.5 },
+        { date: '2024-01-23', crash_rate: 1.3 },
+        { date: '2024-01-24', crash_rate: 1.1 }
+      ],
+      
+      // Device crash patterns
+      device_crash_patterns: [
+        { name: 'Samsung Galaxy S21', value: 234, unique_types: 8 },
+        { name: 'Google Pixel 6', value: 189, unique_types: 6 },
+        { name: 'Xiaomi Mi 11', value: 156, unique_types: 7 },
+        { name: 'OnePlus 9', value: 134, unique_types: 5 },
+        { name: 'Samsung Galaxy A52', value: 98, unique_types: 4 },
+        { name: 'Google Pixel 5', value: 87, unique_types: 6 },
+        { name: 'Huawei P40', value: 76, unique_types: 3 },
+        { name: 'iPhone 13', value: 23, unique_types: 2 } // Much lower crash rate
+      ],
+      
+      // Top crashes by impact (frequency × users affected)
+      top_crashes_by_impact: [
+        { name: 'NullPointerException in UserProfile...', value: 324, users_affected: 89, impact_score: 28836 },
+        { name: 'IndexOutOfBoundsException in ProductList...', value: 187, users_affected: 62, impact_score: 11594 },
+        { name: 'NetworkOnMainThreadException...', value: 145, users_affected: 78, impact_score: 11310 },
+        { name: 'IllegalStateException in PaymentFlow...', value: 98, users_affected: 45, impact_score: 4410 },
+        { name: 'OutOfMemoryError in ImageLoader...', value: 76, users_affected: 34, impact_score: 2584 },
+        { name: 'SQLiteException in DatabaseHelper...', value: 54, users_affected: 23, impact_score: 1242 },
+        { name: 'SecurityException in LocationService...', value: 43, users_affected: 19, impact_score: 817 }
+      ],
+      
+      // Recent crashes with trend indicators
       recent_crashes: [
-        { error: 'NullPointerException', device: 'Samsung Galaxy S21', count: 24, lastSeen: '2 hours ago' },
-        { error: 'IndexOutOfBoundsException', device: 'Google Pixel 6', count: 17, lastSeen: '5 hours ago' },
-        { error: 'NetworkOnMainThreadException', device: 'Xiaomi Mi 11', count: 13, lastSeen: '8 hours ago' },
-        { error: 'IllegalStateException', device: 'OnePlus 9', count: 11, lastSeen: '12 hours ago' },
-        { error: 'OutOfMemoryError', device: 'Samsung Galaxy A52', count: 7, lastSeen: '1 day ago' }
+        { error: 'NullPointerException', device: 'Samsung Galaxy S21', count: 324, lastSeen: '12 minutes ago', trend: 'decreasing' },
+        { error: 'IndexOutOfBoundsException', device: 'Google Pixel 6', count: 187, lastSeen: '34 minutes ago', trend: 'stable' },
+        { error: 'NetworkOnMainThreadException', device: 'Xiaomi Mi 11', count: 145, lastSeen: '1 hour ago', trend: 'decreasing' },
+        { error: 'IllegalStateException', device: 'OnePlus 9', count: 98, lastSeen: '2 hours ago', trend: 'increasing' },
+        { error: 'OutOfMemoryError', device: 'Samsung Galaxy A52', count: 76, lastSeen: '3 hours ago', trend: 'stable' },
+        { error: 'SQLiteException', device: 'Google Pixel 5', count: 54, lastSeen: '5 hours ago', trend: 'decreasing' },
+        { error: 'SecurityException', device: 'Huawei P40', count: 43, lastSeen: '8 hours ago', trend: 'increasing' }
       ]
     };
   },

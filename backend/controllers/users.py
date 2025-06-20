@@ -155,7 +155,7 @@ def get_users(package_name):
 
 @users_blueprint.route('/users/<package_name>/stats', methods=['GET'])
 def get_user_stats(package_name):
-    """Get user statistics for dashboard"""
+    """Get comprehensive user statistics for dashboard"""
 
     print(f"📊 Generating user statistics for: {package_name}")
 
@@ -181,44 +181,122 @@ def get_user_stats(package_name):
             "first_seen": {"$gte": today_start}
         })
 
+        # Calculate user growth over time
+        user_growth = calculate_user_growth(users_collection)
+
+        # Calculate user retention rates
+        user_retention = calculate_user_retention(users_collection)
+
         # Get users by country (for geographic distribution)
-        country_pipeline = [
-            {"$group": {"_id": "$country", "count": {"$sum": 1}}},
-            {"$sort": {"count": -1}},
-            {"$limit": 10}
-        ]
-        users_by_country = list(users_collection.aggregate(country_pipeline))
-
-        # Format for frontend charts
-        geographic_distribution = [
-            {"name": item['_id'], "value": item['count']}
-            for item in users_by_country
-        ]
-
-        # Get user growth over last 30 days
-        growth_data = []
-        for i in range(30, 0, -1):
-            date = datetime.now() - timedelta(days=i)
-            date_start = date.replace(hour=0, minute=0, second=0, microsecond=0)
-            date_end = date_start + timedelta(days=1)
-
-            daily_users = users_collection.count_documents({
-                "first_seen": {"$gte": date_start, "$lt": date_end}
-            })
-
-            growth_data.append({
-                "date": date.strftime("%Y-%m-%d"),
-                "users": daily_users
-            })
+        geographic_distribution = get_geographic_distribution(users_collection)
 
         return jsonify({
             "package_name": package_name,
             "total_users": total_users,
             "active_users": active_users,
             "new_users_today": new_users_today,
-            "user_growth": growth_data,
+            "user_growth": user_growth,
+            "user_retention": user_retention,
             "geographic_distribution": geographic_distribution
         }), 200
 
     except Exception as e:
         return create_error_response(f"Failed to get user statistics: {str(e)}")
+
+
+def calculate_user_growth(users_collection):
+    """
+    Calculate user growth over the last 30 days
+    """
+    growth_data = []
+
+    # Go back 30 days and count new users each day
+    for i in range(30, 0, -1):
+        date = datetime.now() - timedelta(days=i)
+        date_start = date.replace(hour=0, minute=0, second=0, microsecond=0)
+        date_end = date_start + timedelta(days=1)
+
+        # Count users who first registered on this specific day
+        daily_new_users = users_collection.count_documents({
+            "first_seen": {"$gte": date_start, "$lt": date_end}
+        })
+
+        growth_data.append({
+            "date": date.strftime("%Y-%m-%d"),
+            "users": daily_new_users,
+            "month": date.strftime("%b")
+        })
+
+    print(f"📈 Calculated growth for {len(growth_data)} days")
+    return growth_data
+
+
+def calculate_user_retention(users_collection):
+    """
+    Calculate user retention rates
+    """
+
+    thirty_days_ago = datetime.now() - timedelta(days=30)
+
+    # Find users who registered more than 30 days ago
+    cohort_users = list(users_collection.find({
+        "first_seen": {"$lt": thirty_days_ago}
+    }))
+
+    if len(cohort_users) == 0:
+        print("📊 Not enough historical data for retention analysis")
+        return []
+
+    retention_data = []
+
+    # Calculate for different time periods
+    retention_periods = [
+        {"name": "Day 1", "days": 1},
+        {"name": "Day 3", "days": 3},
+        {"name": "Day 7", "days": 7},
+        {"name": "Day 14", "days": 14},
+        {"name": "Day 30", "days": 30}
+    ]
+
+    for period in retention_periods:
+        retained_count = 0
+
+        for user in cohort_users:
+            first_seen = user['first_seen']
+            target_date = first_seen + timedelta(days=period['days'])
+
+            # Check if user was active after the target date
+            if user['last_active'] >= target_date:
+                retained_count += 1
+
+        retention_rate = (retained_count / len(cohort_users)) * 100 if len(cohort_users) > 0 else 0
+
+        retention_data.append({
+            "day": period['name'],
+            "retention": round(retention_rate, 1)
+        })
+
+    print(f"📊 Calculated retention for {len(cohort_users)} users")
+    return retention_data
+
+
+def get_geographic_distribution(users_collection):
+    """
+    Get user distribution by country
+    """
+    country_pipeline = [
+        {"$group": {"_id": "$country", "count": {"$sum": 1}}},
+        {"$sort": {"count": -1}},
+        {"$limit": 10}  # Top 10 countries
+    ]
+
+    users_by_country = list(users_collection.aggregate(country_pipeline))
+
+    # Format for frontend charts
+    geographic_distribution = [
+        {"name": item['_id'] or "Unknown", "value": item['count']}
+        for item in users_by_country
+    ]
+
+    print(f"🌍 Geographic distribution: {len(geographic_distribution)} countries")
+    return geographic_distribution

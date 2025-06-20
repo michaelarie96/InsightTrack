@@ -170,9 +170,9 @@ def get_crashes(package_name):
 
 @crashes_blueprint.route('/crashes/<package_name>/stats', methods=['GET'])
 def get_crash_stats(package_name):
-    """Get crash statistics for dashboard"""
+    """Get crash statistics with trend analysis"""
 
-    print(f"📊 Generating crash statistics for: {package_name}")
+    print(f"📊 Generating enhanced crash statistics for: {package_name}")
 
     try:
         db = AnalyticsConnectionHolder.get_db()
@@ -183,72 +183,295 @@ def get_crash_stats(package_name):
             return error_response
 
         crashes_collection = db[f"{package_name}_crashes"]
+        sessions_collection = db[f"{package_name}_sessions"]
 
-        # Get total crash types (unique crashes)
         total_crash_types = crashes_collection.count_documents({})
 
-        # Get total crash occurrences (sum of all counts)
+        # Get total crash occurrences
         total_crashes_pipeline = [
             {"$group": {"_id": None, "total": {"$sum": "$count"}}}
         ]
         total_crashes_result = list(crashes_collection.aggregate(total_crashes_pipeline))
         total_crashes = total_crashes_result[0]['total'] if total_crashes_result else 0
 
-        # Calculate crash rate
-        sessions_collection = db[f"{package_name}_sessions"]
+        # Calculate crash rate vs sessions
         total_sessions = sessions_collection.count_documents({})
+        crash_rate = calculate_crash_rate(total_crashes, total_sessions)
 
-        if total_sessions > 0:
-            crash_rate = (total_crashes / total_sessions) * 100
-            crash_rate_formatted = f"{crash_rate:.2f}%"
-        else:
-            crash_rate_formatted = "0%"
+        # Enhanced analytics
+        daily_crash_trends = get_daily_crash_trends(crashes_collection)
+        crash_rate_trends = get_crash_rate_trends(crashes_collection, sessions_collection)
+        device_crash_patterns = get_device_crash_patterns(crashes_collection)
+        top_crashes_by_impact = get_top_crashes_by_impact(crashes_collection)
 
-        # Get top crashes (most frequent)
-        top_crashes = list(crashes_collection.find({})
-                           .sort("count", -1)
-                           .limit(10))
-
-        # Format for frontend display
-        recent_crashes = []
-        for crash in top_crashes:
-            device_model = "Unknown"
-            if crash.get('device_info') and crash['device_info'].get('model'):
-                device_model = crash['device_info']['model']
-            elif crash.get('occurrences') and len(crash['occurrences']) > 0:
-                latest_occurrence = crash['occurrences'][-1]
-                if latest_occurrence.get('device_info') and latest_occurrence['device_info'].get('model'):
-                    device_model = latest_occurrence['device_info']['model']
-
-            recent_crashes.append({
-                "error": crash['error_type'],
-                "message": crash.get('error_message', '')[:100],  # Truncate long messages
-                "device": device_model,
-                "count": crash['count'],
-                "lastSeen": format_time_ago(crash['last_seen'])
-            })
-
-        # Get crashes by type
-        crash_types = [
-            {"name": crash['error_type'], "value": crash['count']}
-            for crash in top_crashes[:5]  # Top 5 for chart
-        ]
-
-        # Get daily crash trends
-        daily_crashes = get_daily_crash_counts(crashes_collection)
+        recent_crashes = get_recent_crashes_formatted(crashes_collection)
 
         return jsonify({
             "package_name": package_name,
             "total_crash_types": total_crash_types,
             "total_crashes": total_crashes,
-            "crash_rate": crash_rate_formatted,
-            "recent_crashes": recent_crashes,
-            "crash_types": crash_types,
-            "daily_crashes": daily_crashes
+            "crash_rate": crash_rate,
+            "daily_crash_trends": daily_crash_trends,
+            "crash_rate_trends": crash_rate_trends,
+            "device_crash_patterns": device_crash_patterns,
+            "top_crashes_by_impact": top_crashes_by_impact,
+            "recent_crashes": recent_crashes
         }), 200
 
     except Exception as e:
         return create_error_response(f"Failed to get crash statistics: {str(e)}")
+
+
+def calculate_crash_rate(total_crashes, total_sessions):
+    """Calculate crash rate as percentage"""
+    if total_sessions > 0:
+        rate = (total_crashes / total_sessions) * 100
+        return f"{rate:.2f}%"
+    else:
+        return "0%"
+
+
+def get_daily_crash_trends(crashes_collection):
+    """
+    Get daily crash trends over the last 30 days
+
+    This shows if crashes are increasing/decreasing over time
+    """
+
+    # Count crash occurrences by day using the occurrences array
+    pipeline = [
+        {"$unwind": "$occurrences"},
+        {
+            "$group": {
+                "_id": {"$dateToString": {"format": "%Y-%m-%d", "date": "$occurrences.timestamp"}},
+                "crash_count": {"$sum": 1}
+            }
+        },
+        {"$sort": {"_id": 1}},
+        {"$limit": 30}  # Last 30 days
+    ]
+
+    results = list(crashes_collection.aggregate(pipeline))
+
+    # Fill in missing days with 0 crashes
+    trend_data = []
+    for i in range(30, 0, -1):
+        date = datetime.now() - timedelta(days=i)
+        date_str = date.strftime("%Y-%m-%d")
+
+        # Find crash count for this date
+        crash_count = 0
+        for result in results:
+            if result['_id'] == date_str:
+                crash_count = result['crash_count']
+                break
+
+        trend_data.append({
+            "date": date_str,
+            "crashes": crash_count
+        })
+
+    print(f"📈 Daily crash trends calculated for {len(trend_data)} days")
+    return trend_data
+
+
+def get_crash_rate_trends(crashes_collection, sessions_collection):
+    """
+    Calculate crash rate trends over time
+
+    This shows crash rate percentage per day
+
+    Helps identify if app stability is improving or declining
+    """
+
+    # Get daily session counts
+    session_pipeline = [
+        {
+            "$group": {
+                "_id": {"$dateToString": {"format": "%Y-%m-%d", "date": "$start_time"}},
+                "session_count": {"$sum": 1}
+            }
+        },
+        {"$sort": {"_id": 1}},
+        {"$limit": 30}
+    ]
+
+    daily_sessions = {item['_id']: item['session_count']
+                      for item in sessions_collection.aggregate(session_pipeline)}
+
+    # Get daily crash counts
+    crash_pipeline = [
+        {"$unwind": "$occurrences"},
+        {
+            "$group": {
+                "_id": {"$dateToString": {"format": "%Y-%m-%d", "date": "$occurrences.timestamp"}},
+                "crash_count": {"$sum": 1}
+            }
+        },
+        {"$sort": {"_id": 1}},
+        {"$limit": 30}
+    ]
+
+    daily_crashes = {item['_id']: item['crash_count']
+                     for item in crashes_collection.aggregate(crash_pipeline)}
+
+    # Calculate crash rate for each day
+    rate_trends = []
+    for i in range(30, 0, -1):
+        date = datetime.now() - timedelta(days=i)
+        date_str = date.strftime("%Y-%m-%d")
+
+        crashes = daily_crashes.get(date_str, 0)
+        sessions = daily_sessions.get(date_str, 0)
+
+        crash_rate = (crashes / sessions * 100) if sessions > 0 else 0
+
+        rate_trends.append({
+            "date": date_str,
+            "crash_rate": round(crash_rate, 2)
+        })
+
+    print(f"📊 Crash rate trends calculated for {len(rate_trends)} days")
+    return rate_trends
+
+
+def get_device_crash_patterns(crashes_collection):
+    """
+    Analyze which devices/OS versions crash most
+
+    This helps identify problematic device configurations
+    """
+
+    # Crashes by device model
+    device_pipeline = [
+        {"$unwind": "$occurrences"},
+        {
+            "$group": {
+                "_id": "$occurrences.device_info.model",
+                "crash_count": {"$sum": 1},
+                "unique_crashes": {"$addToSet": "$error_type"}
+            }
+        },
+        {"$sort": {"crash_count": -1}},
+        {"$limit": 10}
+    ]
+
+    device_results = list(crashes_collection.aggregate(device_pipeline))
+
+    # Format for frontend charts
+    device_patterns = [
+        {
+            "name": item['_id'] or "Unknown Device",
+            "value": item['crash_count'],
+            "unique_types": len(item['unique_crashes'])
+        }
+        for item in device_results
+    ]
+
+    print(f"📱 Device crash patterns: {len(device_patterns)} devices analyzed")
+    return device_patterns
+
+
+def get_top_crashes_by_impact(crashes_collection):
+    """
+    Get top crashes ranked by impact (frequency + affected users)
+
+    This prioritizes which crashes developers should fix first
+    """
+
+    pipeline = [
+        {
+            "$addFields": {
+                "unique_users": {"$size": {"$setUnion": ["$occurrences.user_id"]}},
+                "impact_score": {"$multiply": ["$count", {"$size": {"$setUnion": ["$occurrences.user_id"]}}]}
+            }
+        },
+        {"$sort": {"impact_score": -1}},
+        {"$limit": 10}
+    ]
+
+    results = list(crashes_collection.aggregate(pipeline))
+
+    # Format for frontend
+    top_crashes = [
+        {
+            "name": f"{item['error_type'][:30]}...",
+            "value": item['count'],
+            "users_affected": item['unique_users'],
+            "impact_score": item['impact_score']
+        }
+        for item in results
+    ]
+
+    print(f"🎯 Top crashes by impact: {len(top_crashes)} crashes ranked")
+    return top_crashes
+
+
+def get_recent_crashes_formatted(crashes_collection):
+    """Get recent crashes formatted for table display"""
+
+    top_crashes = list(crashes_collection.find({})
+                       .sort("last_seen", -1)
+                       .limit(10))
+
+    # Format for frontend display
+    recent_crashes = []
+    for crash in top_crashes:
+        device_model = "Unknown"
+        if crash.get('device_info') and crash['device_info'].get('model'):
+            device_model = crash['device_info']['model']
+        elif crash.get('occurrences') and len(crash['occurrences']) > 0:
+            latest_occurrence = crash['occurrences'][-1]
+            if latest_occurrence.get('device_info') and latest_occurrence['device_info'].get('model'):
+                device_model = latest_occurrence['device_info']['model']
+
+        recent_crashes.append({
+            "error": crash['error_type'],
+            "message": crash.get('error_message', '')[:100],
+            "device": device_model,
+            "count": crash['count'],
+            "lastSeen": format_time_ago(crash['last_seen']),
+            "trend": get_crash_trend_indicator(crash)  # trend indicator
+        })
+
+    return recent_crashes
+
+
+def get_crash_trend_indicator(crash):
+    """
+    Determine if crash is trending up, down, or stable
+
+    Analyzes recent occurrences to show trend direction
+    """
+    occurrences = crash.get('occurrences', [])
+
+    if len(occurrences) < 2:
+        return "stable"
+
+    # Look at recent occurrences (last 7 days vs previous 7 days)
+    now = datetime.now()
+    week_ago = now - timedelta(days=7)
+    two_weeks_ago = now - timedelta(days=14)
+
+    recent_count = 0
+    previous_count = 0
+
+    for occurrence in occurrences:
+        timestamp = occurrence.get('timestamp')
+        if isinstance(timestamp, str):
+            timestamp = datetime.fromisoformat(timestamp.replace('Z', '+00:00'))
+
+        if timestamp >= week_ago:
+            recent_count += 1
+        elif timestamp >= two_weeks_ago:
+            previous_count += 1
+
+    if recent_count > previous_count:
+        return "increasing"
+    elif recent_count < previous_count:
+        return "decreasing"
+    else:
+        return "stable"
 
 
 def format_time_ago(timestamp):
@@ -269,30 +492,3 @@ def format_time_ago(timestamp):
         return f"{minutes} minute{'s' if minutes != 1 else ''} ago"
     else:
         return "Just now"
-
-
-def get_daily_crash_counts(crashes_collection):
-    """Get daily crash counts for trend analysis"""
-
-    # Count occurrences by day
-    pipeline = [
-        {"$unwind": "$occurrences"},
-        {
-            "$group": {
-                "_id": {"$dateToString": {"format": "%Y-%m-%d", "date": "$occurrences.timestamp"}},
-                "count": {"$sum": 1}
-            }
-        },
-        {"$sort": {"_id": 1}},
-        {"$limit": 30}  # Last 30 days
-    ]
-
-    results = list(crashes_collection.aggregate(pipeline))
-
-    # Format for frontend charts
-    daily_data = [
-        {"date": item['_id'], "crashes": item['count']}
-        for item in results
-    ]
-
-    return daily_data
