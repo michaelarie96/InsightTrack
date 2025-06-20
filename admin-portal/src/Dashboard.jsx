@@ -460,7 +460,7 @@ const Dashboard = () => {
           </div>
 
           <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
-            <div className="h-80">
+            <div className="h-[500px]">
               <WorldMap 
                 data={dashboardData?.userStats?.geographic_distribution}
                 title="Global User Distribution"
