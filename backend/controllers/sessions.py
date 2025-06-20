@@ -1,7 +1,8 @@
 from flask import Blueprint, request, jsonify
-from datetime import datetime, timedelta
+from datetime import datetime
 import uuid
 from mongodb_connection_manager import AnalyticsConnectionHolder
+from session_cleanup import session_cleanup_service
 from validation_utils import (
     validate_required_fields,
     parse_timestamp,
@@ -156,7 +157,7 @@ def get_sessions(package_name):
 
 @sessions_blueprint.route('/sessions/<package_name>/stats', methods=['GET'])
 def get_session_stats(package_name):
-    """Get session statistics for dashboard"""
+    """Get session statistics for dashboard with automatic cleanup"""
 
     print(f"📈 Generating session statistics for: {package_name}")
 
@@ -168,15 +169,22 @@ def get_session_stats(package_name):
         if not is_connected:
             return error_response
 
+        # Run cleanup first to close any stale sessions
+        print(f"🧹 Running session cleanup for {package_name}...")
+        closed_sessions = session_cleanup_service.cleanup_stale_sessions(package_name)
+
+        if closed_sessions > 0:
+            print(f"✅ Cleanup completed: {closed_sessions} stale sessions auto-closed")
+
         sessions_collection = db[f"{package_name}_sessions"]
 
         # Get total session count
         total_sessions = sessions_collection.count_documents({})
 
-        # Get completed sessions
+        # Get completed sessions (have end_time)
         completed_sessions = sessions_collection.count_documents({"end_time": {"$ne": None}})
 
-        # Calculate average session duration (only for completed sessions)
+        # Calculate average session duration
         avg_duration_pipeline = [
             {"$match": {"duration_seconds": {"$ne": None}}},
             {"$group": {"_id": None, "avg_duration": {"$avg": "$duration_seconds"}}}
@@ -184,7 +192,6 @@ def get_session_stats(package_name):
         avg_duration_result = list(sessions_collection.aggregate(avg_duration_pipeline))
         avg_duration_seconds = avg_duration_result[0]['avg_duration'] if avg_duration_result else 0
 
-        # Format average duration
         avg_duration_formatted = format_duration(avg_duration_seconds)
 
         # Get session duration distribution (for pie chart)
@@ -193,19 +200,26 @@ def get_session_stats(package_name):
         # Get daily session counts (for line chart)
         daily_sessions = get_daily_session_counts(sessions_collection)
 
+        # Get session completion rate
+        completion_rate = (completed_sessions / total_sessions * 100) if total_sessions > 0 else 0
+
         return jsonify({
             "package_name": package_name,
             "total_sessions": total_sessions,
             "completed_sessions": completed_sessions,
+            "completion_rate": f"{completion_rate:.1f}%",
             "average_session_duration": avg_duration_formatted,
             "average_duration_seconds": avg_duration_seconds,
             "session_duration_distribution": duration_distribution,
-            "daily_sessions": daily_sessions
+            "daily_sessions": daily_sessions,
+            "cleanup_info": {
+                "stale_sessions_closed": closed_sessions,
+                "timeout_hours": session_cleanup_service.get_session_timeout_hours()
+            }
         }), 200
 
     except Exception as e:
         return create_error_response(f"Failed to get session statistics: {str(e)}")
-
 
 def format_duration(seconds):
     """Convert seconds to human-readable format (e.g., '5m 23s')"""

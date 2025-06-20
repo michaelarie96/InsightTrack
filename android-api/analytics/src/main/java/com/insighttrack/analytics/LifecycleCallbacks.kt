@@ -16,7 +16,8 @@ class LifecycleCallbacks : Application.ActivityLifecycleCallbacks {
 
     override fun onActivityStarted(activity: Activity) {
         if (activeActivities == 0) {
-            // App coming to foreground
+            // App coming to foreground - start new session
+            println("🟢 App coming to foreground - starting session")
             InsightTrackSDK.getInstance().startSession()
             InsightTrackSDK.getInstance().trackAppLifecycle("foreground")
         }
@@ -31,12 +32,17 @@ class LifecycleCallbacks : Application.ActivityLifecycleCallbacks {
 
     override fun onActivityPaused(activity: Activity) {
         InsightTrackSDK.getInstance().trackAppLifecycle("onPause")
+
+        // We don't end sessions here because user might just be switching
+        // between activities or temporarily going to another app
     }
 
     override fun onActivityStopped(activity: Activity) {
         activeActivities--
+
         if (activeActivities == 0) {
-            // App going to background
+            // All activities stopped = app going to background
+            println("🔴 App going to background - ending session")
             InsightTrackSDK.getInstance().trackAppLifecycle("background")
             InsightTrackSDK.getInstance().endSession()
         }
@@ -47,6 +53,6 @@ class LifecycleCallbacks : Application.ActivityLifecycleCallbacks {
     }
 
     override fun onActivityDestroyed(activity: Activity) {
-        // Not tracking this event
+        InsightTrackSDK.getInstance().trackAppLifecycle("onDestroy")
     }
 }
