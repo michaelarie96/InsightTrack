@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { StatLineChart, DistributionPieChart, HorizontalBarChart } from './ChartComponents';
 import ModeToggle, { ModeInfoCard } from './components/ModeToggle';
+import WorldMap from './components/WorldMap';
 import { dataService } from './services/dataService';
 
 const Dashboard = () => {
@@ -339,7 +340,7 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Crash Analytics Section - NEW ENHANCED SECTION */}
+        {/* Crash Analytics Section */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
             <h2 className="text-lg font-medium text-gray-800">
@@ -459,38 +460,11 @@ const Dashboard = () => {
           </div>
 
           <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
-            <h2 className="text-lg font-medium text-gray-800">
-              🌍 Geographic Distribution
-            </h2>
-            <p className="text-sm text-gray-500 mb-4">
-              {isDemoMode 
-                ? 'Users by country worldwide' 
-                : 'Real geographic distribution via IP detection'
-              }
-            </p>
-            <div className="h-64">
-              {(() => {
-                const geoData = dashboardData?.userStats?.geographic_distribution;
-                
-                if (geoData && geoData.length > 0) {
-                  return (
-                    <DistributionPieChart 
-                      data={geoData} 
-                      colors={COLORS} 
-                      dataKey="value" 
-                      nameKey="name" 
-                    />
-                  );
-                } else {
-                  return (
-                    <EmptyChartState 
-                      icon="🌍"
-                      title="No Geographic Data Yet"
-                      description="Real user location data will appear when users register"
-                    />
-                  );
-                }
-              })()}
+            <div className="h-80">
+              <WorldMap 
+                data={dashboardData?.userStats?.geographic_distribution}
+                title="Global User Distribution"
+              />
             </div>
           </div>
         </div>
