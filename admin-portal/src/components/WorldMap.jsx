@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
   ComposableMap,
   Geographies,
@@ -8,8 +8,8 @@ import {
 } from 'react-simple-maps';
 
 /**
- * Interactive World Map Component - Final Fixed Version
- * Shows user distribution by country with color-coded intensity (like Firebase Analytics)
+ * Interactive World Map Component - FIXED VERSION
+ * Shows user distribution by country with color-coded intensity
  */
 const WorldMap = ({ data, title = "Geographic Distribution" }) => {
   const [tooltipContent, setTooltipContent] = useState('');
@@ -19,22 +19,19 @@ const WorldMap = ({ data, title = "Geographic Distribution" }) => {
   const [mapError, setMapError] = useState(false);
   const mapLoadedRef = useRef(false);
 
-  // Use a working geography data source from unpkg.com
+  // Use a working geography data source
   const geoUrl = "https://unpkg.com/world-atlas@1/world/110m.json";
   
-  // Debug logging
-  useEffect(() => {
-    console.log('🗺️ WorldMap component mounted');
-    console.log('📊 Data received:', data);
-    console.log('🌐 Geography URL:', geoUrl);
-  }, [data]);
+  // 🔧 FIX: Pre-process data into a lookup map for faster, more reliable matching
+  const countryDataMap = useMemo(() => {
+    console.log('🔄 Creating country data map from:', data);
+    
+    if (!data || !Array.isArray(data)) {
+      console.log('❌ No data provided to WorldMap');
+      return new Map();
+    }
 
-  /**
-   * Get user count for a specific country
-   * Handles common country name variations and undefined values
-   */
-  const getUserCountForCountry = (countryName) => {
-    if (!data || !Array.isArray(data) || !countryName || countryName === 'Unknown') return 0;
+    const map = new Map();
     
     // Common country name mappings for better matching
     const countryMappings = {
@@ -56,55 +53,79 @@ const WorldMap = ({ data, title = "Geographic Distribution" }) => {
       'Congo': 'Democratic Republic of the Congo'
     };
 
-    // Try exact match first
-    let country = data.find(item => 
-      item.name && item.name.toLowerCase() === countryName.toLowerCase()
-    );
+    // Process each country in our data
+    data.forEach(country => {
+      if (!country.name || country.name === 'Unknown') return;
+      
+      const countryName = country.name;
+      const userCount = country.value || 0;
+      
+      // Store under original name
+      map.set(countryName.toLowerCase(), userCount);
+      
+      // Store under mapped names if they exist
+      Object.entries(countryMappings).forEach(([key, value]) => {
+        if (key.toLowerCase() === countryName.toLowerCase()) {
+          map.set(value.toLowerCase(), userCount);
+        }
+        if (value.toLowerCase() === countryName.toLowerCase()) {
+          map.set(key.toLowerCase(), userCount);
+        }
+      });
+      
+      console.log(`📊 Mapped "${countryName}" → ${userCount} users`);
+    });
+    
+    console.log(`✅ Country data map created with ${map.size} entries`);
+    return map;
+  }, [data]);
 
-    if (country) {
-      return country.value;
+  // 🔧 FIX: Simplified and more reliable country lookup
+  const getUserCountForCountry = (countryName) => {
+    if (!countryName || countryName === 'Unknown' || countryDataMap.size === 0) {
+      return 0;
     }
 
-    // Try mapped name
-    const mappedName = countryMappings[countryName];
-    if (mappedName) {
-      country = data.find(item => 
-        item.name && item.name.toLowerCase() === mappedName.toLowerCase()
-      );
-      if (country) {
-        return country.value;
+    // Try exact match first
+    const exact = countryDataMap.get(countryName.toLowerCase());
+    if (exact !== undefined) {
+      console.log(`✅ Found exact match: ${countryName} → ${exact} users`);
+      return exact;
+    }
+
+    // Try partial matching
+    for (const [mapKey, userCount] of countryDataMap.entries()) {
+      if (mapKey.includes(countryName.toLowerCase()) || 
+          countryName.toLowerCase().includes(mapKey)) {
+        console.log(`✅ Found partial match: ${countryName} → ${userCount} users`);
+        return userCount;
       }
     }
 
-    // Try partial match
-    country = data.find(item => 
-      item.name && (
-        item.name.toLowerCase().includes(countryName.toLowerCase()) ||
-        countryName.toLowerCase().includes(item.name.toLowerCase())
-      )
-    );
-    
-    if (country) {
-      return country.value;
-    }
-
+    console.log(`❌ No match found for: ${countryName}`);
     return 0;
   };
 
+  // 🔧 FIX: Calculate max users for color scaling from the map
+  const maxUsers = useMemo(() => {
+    if (countryDataMap.size === 0) return 1;
+    const max = Math.max(...countryDataMap.values());
+    console.log(`📊 Maximum user count: ${max}`);
+    return max;
+  }, [countryDataMap]);
+
   /**
    * Get color intensity for a country based on user count
-   * Uses a gradient from light to dark blue (like Firebase)
    */
   const getCountryColor = (countryName) => {
     const userCount = getUserCountForCountry(countryName);
     
     if (userCount === 0) {
-      return '#e2e8f0'; // Light gray with better contrast against blue ocean
+      return '#e2e8f0'; // Light gray for no users
     }
 
-    // Find the maximum user count for scaling
-    const maxUsers = data && data.length > 0 ? Math.max(...data.map(item => item.value)) : 1;
-    const intensity = Math.min(userCount / maxUsers, 1); // Normalize to 0-1
+    // Normalize to 0-1 scale
+    const intensity = Math.min(userCount / maxUsers, 1);
 
     // Firebase-like blue gradient colors
     const colors = [
@@ -120,21 +141,29 @@ const WorldMap = ({ data, title = "Geographic Distribution" }) => {
 
     // Map intensity to color index
     const colorIndex = Math.floor(intensity * (colors.length - 1));
-    return colors[colorIndex];
+    const selectedColor = colors[colorIndex];
+    
+    // Debug: Log color selection for first few countries
+    if (userCount > 0) {
+      console.log(`🎨 Color for ${countryName}: ${userCount} users (${(intensity * 100).toFixed(1)}% intensity) → ${selectedColor}`);
+    }
+    
+    return selectedColor;
   };
 
   /**
    * Handle mouse hover over country
    */
   const handleMouseEnter = (event, geo) => {
-    // Use the same country name logic as in the map rendering
     const countryName = geo.properties.NAME_EN || 
                         geo.properties.NAME || 
                         geo.properties.ADMIN || 
                         geo.properties.NAME_LONG ||
-                        geo.properties.COUNTRY ||
                         'Unknown';
+    
     const userCount = getUserCountForCountry(countryName);
+    
+    console.log(`🖱️ Hover: ${countryName} → ${userCount} users`);
     
     setTooltipContent(`${countryName}: ${userCount.toLocaleString()} users`);
     setShowTooltip(true);
@@ -157,14 +186,23 @@ const WorldMap = ({ data, title = "Geographic Distribution" }) => {
     setShowTooltip(false);
   };
 
-  /**
-   * Calculate statistics for summary
-   */
+  // Calculate statistics for summary
   const totalUsers = data ? data.reduce((sum, item) => sum + item.value, 0) : 0;
   const totalCountries = data ? data.filter(item => item.value > 0).length : 0;
   const topCountry = data && data.length > 0 ? data.reduce((max, country) => 
     country.value > max.value ? country : max
   ) : null;
+
+  // Debug log when data changes
+  useEffect(() => {
+    console.log('🗺️ WorldMap data updated:', {
+      dataLength: data?.length || 0,
+      totalUsers,
+      totalCountries,
+      topCountry: topCountry?.name,
+      mapSize: countryDataMap.size
+    });
+  }, [data, totalUsers, totalCountries, topCountry, countryDataMap.size]);
 
   return (
     <div className="h-full flex flex-col">
@@ -177,7 +215,7 @@ const WorldMap = ({ data, title = "Geographic Distribution" }) => {
           <span>👥 {totalUsers.toLocaleString()} total users</span>
           <span>🌎 {totalCountries} countries</span>
           {topCountry && (
-            <span>🏆 Top: {topCountry.name}</span>
+            <span>🏆 Top: {topCountry.name} ({topCountry.value.toLocaleString()})</span>
           )}
         </div>
       </div>
@@ -228,11 +266,10 @@ const WorldMap = ({ data, title = "Geographic Distribution" }) => {
             }}
           >
             {({ geographies }) => {
-              // Set map loaded only once using ref to prevent setState during render
+              // Set map loaded only once
               if (geographies.length > 0 && !mapLoadedRef.current) {
                 console.log('🌍 Geographies loaded:', geographies.length, 'countries');
                 mapLoadedRef.current = true;
-                // Use setTimeout to update state after render completes
                 setTimeout(() => {
                   console.log('✅ Map successfully loaded!');
                   setMapLoaded(true);
@@ -240,25 +277,19 @@ const WorldMap = ({ data, title = "Geographic Distribution" }) => {
               }
 
               return geographies.map((geo) => {
-                // Debug: Let's see what properties are available (only once)
-                if (geographies.indexOf(geo) === 0 && !mapLoadedRef.current) {
-                  console.log('🗺️ First geography properties:', Object.keys(geo.properties));
-                  console.log('🗺️ Sample geo object:', geo.properties);
-                }
-                
-                // Try different possible property names for country
                 const countryName = geo.properties.NAME_EN || 
                                   geo.properties.NAME || 
                                   geo.properties.ADMIN || 
                                   geo.properties.NAME_LONG ||
-                                  geo.properties.COUNTRY ||
                                   'Unknown';
+                
+                const fillColor = getCountryColor(countryName);
                 
                 return (
                   <Geography
                     key={geo.rsmKey}
                     geography={geo}
-                    fill={getCountryColor(countryName)}
+                    fill={fillColor}
                     stroke="#ffffff"
                     strokeWidth={0.7}
                     onMouseEnter={(event) => handleMouseEnter(event, geo)}
@@ -301,7 +332,7 @@ const WorldMap = ({ data, title = "Geographic Distribution" }) => {
         )}
       </div>
 
-      {/* Color Legend and Top Countries Fallback */}
+      {/* Color Legend and Top Countries */}
       <div className="mt-4 flex-shrink-0">
         {/* Color Legend */}
         <div className="flex items-center justify-center mb-3">
@@ -322,7 +353,7 @@ const WorldMap = ({ data, title = "Geographic Distribution" }) => {
           </div>
         </div>
 
-        {/* Top Countries (fallback when map fails or additional info) */}
+        {/* Top Countries List */}
         {data && data.length > 0 && (
           <div className="bg-white rounded-lg p-3 border border-gray-200">
             <div className="text-sm font-medium text-gray-700 mb-2">Top Countries:</div>
