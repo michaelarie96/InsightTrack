@@ -1,675 +1,224 @@
-# InsightTrack Analytics API
+# InsightTrack Analytics SDK
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![API Status](https://img.shields.io/badge/API-Live-green)](https://insighttrack-analytics-api.vercel.app/health)
 [![JitPack](https://jitpack.io/v/michaelarie96/InsightTrack.svg)](https://jitpack.io/#michaelarie96/InsightTrack)
-[![Documentation](https://img.shields.io/badge/docs-live-blue)](https://yourusername.github.io/insighttrack-analytics/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 > **Complete Analytics SDK Ecosystem** - Track user behavior, sessions, events, and crashes with enterprise-grade analytics infrastructure
 
 InsightTrack is a comprehensive analytics solution that provides developers with a powerful Android SDK, robust backend API, and intuitive admin dashboard to track and analyze user behavior in mobile applications.
 
-## 🚀 Live Demo
+## 🚀 Quick Start (5 Minutes)
 
-- **🌐 Admin Portal**: `https://[your-admin-portal].vercel.app` *(Coming Soon)*
-- **📊 API Documentation**: `https://[your-api-domain].vercel.app/apidocs` *(Coming Soon)*
-- **📱 Example App**: `[Download APK from releases]` *(Coming Soon)*
+### 1. Add to Your App
 
-## 📋 Table of Contents
-
-- [Features](#-features)
-- [Architecture](#-architecture)
-- [Quick Start](#-quick-start)
-- [Android SDK](#-android-sdk)
-- [Backend API](#-backend-api)
-- [Admin Portal](#-admin-portal)
-- [Documentation](#-documentation)
-- [Examples](#-examples)
-- [Deployment](#-deployment)
-- [Contributing](#-contributing)
-- [License](#-license)
-
-## ✨ Features
-
-### 📱 Android SDK
-- **🔧 Easy Integration** - Single line initialization
-- **📊 Comprehensive Tracking** - Users, sessions, events, crashes
-- **🌐 Smart Offline Support** - Queue events when offline, sync when online
-- **⚡ High Performance** - Minimal battery and memory impact
-- **🎯 Real-time Analytics** - Instant data collection and transmission
-- **🔒 Privacy Focused** - GDPR compliant data handling
-
-### 🖥️ Backend API
-- **🔌 RESTful Architecture** - Clean, documented API endpoints
-- **🗄️ MongoDB Integration** - Scalable NoSQL data storage
-- **🔗 Multi-tenant Support** - Package-based data isolation
-- **📈 Real-time Analytics** - Live data aggregation and statistics
-- **🌍 Cloud Deployment** - Deployed on Vercel with global CDN
-- **📝 Swagger Documentation** - Interactive API documentation
-
-### 📊 Admin Dashboard
-- **📈 Rich Visualizations** - Charts, graphs, and metrics
-- **👥 User Analytics** - Active users, retention, geographic distribution
-- **🎯 Event Tracking** - Custom and predefined event monitoring
-- **💥 Crash Reporting** - Detailed crash analysis and stack traces
-- **📱 Session Analytics** - Duration, frequency, and behavior patterns
-- **🕐 Real-time Updates** - Live data streaming and updates
-
-## 🏗️ Architecture
-
-```mermaid
-graph TB
-    subgraph "Mobile Apps"
-        A[Android App 1]
-        B[Android App 2]
-        C[Android App N]
-    end
-    
-    subgraph "InsightTrack SDK"
-        D[Analytics SDK]
-        E[Offline Storage]
-        F[Network Manager]
-    end
-    
-    subgraph "Backend Infrastructure"
-        G[Flask API Server]
-        H[MongoDB Atlas]
-        I[Swagger Docs]
-    end
-    
-    subgraph "Admin Interface"
-        J[React Dashboard]
-        K[Charts & Analytics]
-        L[Real-time Updates]
-    end
-    
-    A --> D
-    B --> D
-    C --> D
-    D --> E
-    D --> F
-    F --> G
-    G --> H
-    G --> I
-    J --> G
-    J --> K
-    J --> L
-```
-
-## 🚀 Quick Start
-
-### 1. Add SDK to Your Android Project
-
-Add to your app's `build.gradle`:
-
+**In your app's `build.gradle`:**
 ```kotlin
 dependencies {
-    implementation 'com.github.yourusername:insighttrack-analytics:1.0.0'
+    implementation 'com.github.michaelarie96:InsightTrack:v1.0.6'
 }
 ```
 
-### 2. Initialize in Application Class
+### 2. Initialize (One Time Setup)
 
+**Create or edit your Application class:**
 ```kotlin
 class MyApplication : Application() {
     override fun onCreate() {
         super.onCreate()
         
         InsightTrackSDK.Builder.with(this)
-            .setApiKey("your-api-key")
-            .useProduction("insighttrack-analytics-api.vercel.app")
+            .setApiKey("your-api-key")  // Get this from the InsightTrack team
+            .useProduction("insighttrack-dashboard.app")  // Demo server (not deployed)
             .build()
     }
 }
 ```
 
-### 3. Start Tracking Events
+
+### 3. Track Events (Anywhere in Your App)
 
 ```kotlin
-// Track user actions
-InsightTrackSDK.getInstance().trackLogin("email")
-InsightTrackSDK.getInstance().trackScreenView("HomeScreen")
+// ✨ Super simple - just describe what happened
+InsightTrackSDK.getInstance().trackEvent("User shared a photo")
+
+// 📝 Simple with category
+InsightTrackSDK.getInstance().trackEvent("button_click", "User tapped the like button")
+
+// 🏢 Advanced (for complex apps)
 InsightTrackSDK.getInstance().trackPurchase("order_123", 29.99)
-
-// Track custom events
-InsightTrackSDK.getInstance().trackEvent("custom_action", mapOf(
-    "feature" to "premium",
-    "value" to 42
-))
 ```
 
-That's it! Your app is now sending analytics data to InsightTrack.
+**That's it!** Your app is now tracking user behavior. 
 
-## 📱 Android SDK
+---
 
-### Installation
+## 📖 Common Examples
 
-#### Option 1: JitPack (Recommended)
+### Basic User Actions (Custom Tracking)
 ```kotlin
-// In project build.gradle
-allprojects {
-    repositories {
-        maven { url 'https://jitpack.io' }
-    }
-}
+// ✨ Simple custom events - describe anything that happens in your app
+InsightTrackSDK.getInstance().trackEvent("User opened settings menu")
+InsightTrackSDK.getInstance().trackEvent("User completed tutorial")
+InsightTrackSDK.getInstance().trackEvent("User subscribed to premium")
 
-// In app build.gradle
-dependencies {
-    implementation 'com.github.yourusername:insighttrack-analytics:1.0.0'
-}
+// 📝 Custom events with categories - organize your tracking
+InsightTrackSDK.getInstance().trackEvent("video_action", "User played intro video")
+InsightTrackSDK.getInstance().trackEvent("social_share", "User shared on Instagram")
+InsightTrackSDK.getInstance().trackEvent("tutorial_step", "User completed step 3")
 ```
 
-#### Option 2: Local Development
+### E-commerce Tracking (Built-in Methods)
 ```kotlin
-// Clone the repository and include as module
-implementation project(':analytics')
+// 🛍️ Use our specialized e-commerce tracking
+InsightTrackSDK.getInstance().trackProductView("iphone15", "iPhone 15", 999.0, "Electronics")
+InsightTrackSDK.getInstance().trackAddToCart("iphone15", "iPhone 15", 999.0, 1)
+InsightTrackSDK.getInstance().trackCheckout()
+InsightTrackSDK.getInstance().trackPurchase("order_456", 999.0)
 ```
 
-### Configuration
-
-```kotlin
-class YourApplication : Application() {
-    override fun onCreate() {
-        super.onCreate()
-        
-        InsightTrackSDK.Builder.with(this)
-            .setApiKey("your-api-key")                    // Required
-            .useProduction("your-domain.com")             // Production API
-            // OR
-            .useLocalDevelopment(5001)                    // Local development
-            .build()
-    }
-}
-```
-
-### Core Features
-
-#### User Tracking
-```kotlin
-// Set user identifier
-InsightTrackSDK.getInstance().setUserId("user_12345")
-
-// Track user actions
-InsightTrackSDK.getInstance().trackLogin("google")
-InsightTrackSDK.getInstance().trackLogout()
-InsightTrackSDK.getInstance().trackProfileUpdated()
-```
-
-#### Event Tracking
-```kotlin
-// Predefined events
-InsightTrackSDK.getInstance().trackScreenView("ProductScreen")
-InsightTrackSDK.getInstance().trackButtonClick("checkout_btn")
-InsightTrackSDK.getInstance().trackFeatureUsed("premium_search")
-
-// Custom events with properties
-InsightTrackSDK.getInstance().trackEvent("video_played", mapOf(
-    "video_id" to "abc123",
-    "duration" to 120,
-    "quality" to "HD"
-))
-```
-
-#### E-commerce Tracking
-```kotlin
-// Product interactions
-InsightTrackSDK.getInstance().trackProductView(
-    productId = "phone_001",
-    productName = "Smartphone Pro",
-    price = 699.99,
-    category = "Electronics"
-)
-
-// Purchase tracking
-InsightTrackSDK.getInstance().trackPurchase(
-    orderId = "order_12345",
-    total = 699.99,
-    items = listOf(
-        mapOf(
-            "product_id" to "phone_001",
-            "quantity" to 1,
-            "price" to 699.99
-        )
-    )
-)
-```
-
-#### Session Management
-```kotlin
-// Automatic session tracking (handled by lifecycle callbacks)
-// Manual session control
-InsightTrackSDK.getInstance().startSession()
-InsightTrackSDK.getInstance().endSession()
-```
-
-#### Crash Reporting
-```kotlin
-// Automatic crash reporting (set up in Application class)
-// Manual error logging
-try {
-    riskyOperation()
-} catch (exception: Exception) {
-    InsightTrackSDK.getInstance().logCrash(exception)
-}
-
-// Custom error logging
-InsightTrackSDK.getInstance().logError("validation_error", "Invalid email format")
-```
-
-### Offline Support
-
-The SDK automatically handles offline scenarios:
-
-- **📴 Offline Queueing**: Events are stored locally when offline
-- **🔄 Auto Retry**: Automatic retry when connection is restored
-- **💾 Persistent Storage**: Events survive app restarts
-- **🧹 Smart Cleanup**: Automatic cleanup of corrupted events
-
-## 🔧 Backend API
-
-### Architecture
-
-The backend API is built with Flask and deployed on Vercel with MongoDB Atlas for data storage.
-
-#### Project Structure
-```
-backend/
-├── app.py                          # Main Flask application
-├── routes.py                       # Route registration
-├── mongodb_connection_manager.py   # Database connection
-├── controllers/
-│   ├── events.py                  # Event tracking endpoints
-│   ├── users.py                   # User management
-│   ├── sessions.py                # Session analytics
-│   └── crashes.py                 # Crash reporting
-├── requirements.txt               # Dependencies
-└── vercel.json                    # Deployment config
-```
-
-### API Endpoints
-
-#### Events API
-```http
-POST   /analytics/events                   # Log new event
-GET    /analytics/events/{package}         # Get events for package
-GET    /analytics/events/{package}/stats   # Event statistics
-```
-
-#### Users API
-```http
-POST   /analytics/users                    # Register user
-GET    /analytics/users/{package}          # Get users for package
-GET    /analytics/users/{package}/active   # Get active users
-GET    /analytics/users/{package}/by-country # Geographic distribution
-```
-
-#### Sessions API
-```http
-POST   /analytics/sessions                 # Start/end session
-GET    /analytics/sessions/{package}       # Get session data
-GET    /analytics/sessions/{package}/stats # Session statistics
-```
-
-#### Health & Documentation
-```http
-GET    /health                            # API health check
-GET    /apidocs                           # Swagger documentation
-```
-
-### Example Requests
-
-#### Logging an Event
-```bash
-curl -X POST https://[your-api-domain].vercel.app/analytics/events \
-  -H "Content-Type: application/json" \
-  -d '{
-    "package_name": "com.example.myapp",
-    "event_type": "button_click",
-    "user_id": "user_123",
-    "timestamp": 1640995200000,
-    "properties": {
-      "button_id": "checkout",
-      "screen": "product_page"
-    }
-  }'
-```
-
-#### Getting Event Statistics
-```bash
-curl https://[your-api-domain].vercel.app/analytics/events/com.example.myapp/stats
-```
-
-### Database Schema
-
-#### Events Collection
-```javascript
-{
-  "_id": "uuid",
-  "event_type": "button_click",
-  "user_id": "user_123",
-  "session_id": "session_456",
-  "timestamp": ISODate("2023-01-01T12:00:00Z"),
-  "properties": {
-    "button_id": "checkout",
-    "value": 29.99
-  },
-  "device_info": {
-    "model": "Pixel 6",
-    "os_version": "13"
-  },
-  "created_at": ISODate("2023-01-01T12:00:01Z")
-}
-```
-
-### Environment Variables
-
-```bash
-# Database Configuration (Example - Replace with your actual values)
-DB_CONNECTION_STRING=mongodb+srv://[username]:[password]@[cluster].mongodb.net
-DB_NAME=insighttrack_analytics
-
-# API Configuration
-SECRET_KEY=[your-secret-key]
-API_VERSION=v1
-```
-
-## 📊 Admin Portal
-
-### Features
-
-#### Dashboard Overview
-- **📈 Key Metrics**: Total users, active users, session duration, events, crash rate
-- **📊 User Analytics**: Growth charts, retention analysis, geographic distribution
-- **🎯 Event Analytics**: Top events, event frequency, custom event tracking
-- **💥 Crash Reports**: Error tracking, stack traces, device information
-- **📱 Session Analytics**: Duration distribution, activity patterns
-
-#### Real-time Features
-- **🔄 Live Updates**: Real-time data refresh
-- **📅 Date Filtering**: Custom date ranges and period selection
-- **🔍 Search & Filter**: Advanced filtering options
-- **📊 Export Options**: CSV, PDF report generation
-
-### Technology Stack
-- **⚛️ React 18** - Modern UI framework
-- **🎨 Tailwind CSS** - Utility-first styling
-- **📊 Recharts** - Beautiful, responsive charts
-- **🌐 Axios** - HTTP client for API communication
-- **⚡ Vite** - Fast build tooling
-
-### Running Locally
-
-```bash
-# Navigate to admin portal
-cd admin-portal
-
-# Install dependencies
-npm install
-
-# Set environment variables
-echo "VITE_API_BASE_URL=http://localhost:5001" > .env
-
-# Start development server
-npm run dev
-```
-
-### Building for Production
-
-```bash
-# Build optimized bundle
-npm run build
-
-# Preview production build
-npm run preview
-```
-
-## 📚 Documentation
-
-### Available Documentation
-- **🚀 This README** - Complete setup and integration guide
-- **📖 Code Examples** - See the Examples section below
-- **🔌 API Endpoints** - Documented in the Backend API section
-
-### Interactive Documentation
-- **📊 [Swagger API Docs]()** - In the Future?
-- **🎮 [SDK Playground]()** - In the Future?
-
-## 💻 Examples
-
-### Basic Integration Example
-
+### User Journey (Built-in Methods)
 ```kotlin
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
         
-        // Track screen view
+        // 👤 Use built-in user tracking
+        InsightTrackSDK.getInstance().setUserId("user_12345")
+        InsightTrackSDK.getInstance().trackLogin("email")
         InsightTrackSDK.getInstance().trackScreenView("MainActivity")
         
-        // Track user interactions
-        findViewById<Button>(R.id.button).setOnClickListener {
-            InsightTrackSDK.getInstance().trackButtonClick("main_action")
-            
+        // 🎯 Use built-in action tracking  
+        findViewById<Button>(R.id.shareButton).setOnClickListener {
+            InsightTrackSDK.getInstance().trackButtonClick("share_button")
+            InsightTrackSDK.getInstance().trackFeatureUsed("social_sharing")
             // Your button logic here
         }
     }
 }
 ```
 
-### E-commerce Integration
+---
 
-```kotlin
-class ProductActivity : AppCompatActivity() {
-    
-    private val product = Product(
-        id = "prod_123",
-        name = "Wireless Headphones",
-        price = 199.99,
-        category = "Electronics"
-    )
-    
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        
-        // Track product view
-        InsightTrackSDK.getInstance().trackProductView(
-            product.id,
-            product.name,
-            product.price,
-            product.category
-        )
-        
-        addToCartButton.setOnClickListener {
-            // Track add to cart
-            InsightTrackSDK.getInstance().trackAddToCart(
-                product.id,
-                product.name,
-                product.price,
-                quantity = 1
-            )
-            
-            // Add to cart logic
-        }
-    }
-}
-```
+## 🎯 What You Get
 
-### Custom Event Tracking
-
-```kotlin
-class GameActivity : AppCompatActivity() {
-    
-    private fun onLevelCompleted(level: Int, score: Int, timeSpent: Long) {
-        // Track custom game event
-        InsightTrackSDK.getInstance().trackEvent("level_completed", mapOf(
-            "level" to level,
-            "score" to score,
-            "time_spent_seconds" to timeSpent / 1000,
-            "difficulty" to "hard",
-            "power_ups_used" to 3
-        ))
-    }
-    
-    private fun onInAppPurchase(item: String, price: Double) {
-        // Track in-app purchase
-        InsightTrackSDK.getInstance().trackPurchase(
-            orderId = "iap_${System.currentTimeMillis()}",
-            total = price,
-            items = listOf(mapOf(
-                "product_id" to item,
-                "price" to price,
-                "currency" to "USD",
-                "type" to "in_app_purchase"
-            ))
-        )
-    }
-}
-```
-
-## 🚀 Deployment
-
-### Backend Deployment (Vercel)
-
-1. **Setup MongoDB Atlas**
-   ```bash
-   # Create cluster at https://cloud.mongodb.com
-   # Get connection string
-   # Configure network access and database user
-   ```
-
-2. **Deploy to Vercel**
-   ```bash
-   # Install Vercel CLI
-   npm i -g vercel
-   
-   # Navigate to backend directory
-   cd backend
-   
-   # Deploy
-   vercel --prod
-   
-   # Set environment variables in Vercel dashboard
-   ```
-
-3. **Environment Variables**
-   ```bash
-   DB_CONNECTION_STRING=mongodb+srv://...
-   DB_NAME=insighttrack_analytics
-   SECRET_KEY=your-production-secret
-   ```
-
-### Admin Portal Deployment
-
-1. **Build and Deploy**
-   ```bash
-   cd admin-portal
-   npm run build
-   vercel --prod
-   ```
-
-2. **Environment Configuration**
-   ```bash
-   VITE_API_BASE_URL=https://[your-api-domain].vercel.app
-   ```
-
-### Android SDK Publishing (JitPack)
-
-1. **Tag Release**
-   ```bash
-   git tag v1.0.0
-   git push origin v1.0.0
-   ```
-
-2. **JitPack automatically builds from GitHub tags**
-   - Visit [jitpack.io](https://jitpack.io)
-   - Enter your repository URL
-   - Build is triggered automatically
-
-## 🧪 Testing
-
-### Android SDK Tests
-```bash
-cd android-api
-./gradlew test
-./gradlew connectedAndroidTest
-```
-
-### Backend API Tests
-```bash
-cd backend
-python -m pytest tests/
-```
-
-### Admin Portal Tests
-```bash
-cd admin-portal
-npm test
-npm run test:e2e
-```
-
-## 🤝 Contributing
-
-We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
-
-### Development Setup
-
-1. **Clone Repository**
-   ```bash
-   git clone https://github.com/yourusername/insighttrack-analytics.git
-   cd insighttrack-analytics
-   ```
-
-2. **Backend Setup**
-   ```bash
-   cd backend
-   python -m venv venv
-   source venv/bin/activate  # or `venv\Scripts\activate` on Windows
-   pip install -r requirements.txt
-   ```
-
-3. **Android Setup**
-   ```bash
-   cd android-api
-   ./gradlew build
-   ```
-
-4. **Frontend Setup**
-   ```bash
-   cd admin-portal
-   npm install
-   npm run dev
-   ```
-
-### Code Style
-- **Kotlin**: Follow [Kotlin Coding Conventions](https://kotlinlang.org/docs/coding-conventions.html)
-- **Python**: Follow [PEP 8](https://pep8.org/)
-- **JavaScript**: Follow [Airbnb Style Guide](https://github.com/airbnb/javascript)
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgments
-
-- **MongoDB Atlas** - Cloud database hosting
-- **Vercel** - Deployment and hosting platform
-- **JitPack** - Android library distribution
-- **Recharts** - React charting library
-- **Retrofit** - Android networking library
-
-- This project was developed as part of the Android Seminar course taught by Guy Isakov in the Afeka College of Engineering
-
-## 📞 Support
-
-- **📧 Email**: michaelarie96@gmail.com
+- **📊 Real-time Analytics Dashboard** - See user behavior instantly
+- **📱 Screen Tracking** - Know which screens users visit most
+- **💰 E-commerce Insights** - Track purchases and conversions
+- **💥 Crash Reporting** - Automatically detect and report crashes
+- **🌐 Offline Support** - Events saved when offline, sent when online
+- **🔒 Privacy Focused** - GDPR compliant, no personal data required
 
 ---
 
-<div align="center">
+## 🛠️ Advanced Features
 
-**[⭐ Star this repository](https://github.com/yourusername/insighttrack-analytics) | [🍴 Fork](https://github.com/yourusername/insighttrack-analytics/fork) | [📖 Documentation](https://yourusername.github.io/insighttrack-analytics/)**
+### User Identification
+```kotlin
+// Set user ID after login
+InsightTrackSDK.getInstance().setUserId("user_12345")
 
-Made with ❤️ by the InsightTrack team
+// Track login/logout
+InsightTrackSDK.getInstance().trackLogin("email")
+InsightTrackSDK.getInstance().trackLogout()
+```
 
-</div>
+### Detailed E-commerce
+```kotlin
+// Track complete purchase flow
+InsightTrackSDK.getInstance().trackProductView("laptop_pro", "MacBook Pro", 2399.0, "Computers")
+InsightTrackSDK.getInstance().trackAddToCart("laptop_pro", "MacBook Pro", 2399.0, 1)
+InsightTrackSDK.getInstance().trackCheckout()
+InsightTrackSDK.getInstance().trackPurchase("order_789", 2399.0, itemsList)
+```
+
+### Custom Properties
+```kotlin
+// Add custom data to any event
+InsightTrackSDK.getInstance().trackEvent("level_completed", mapOf(
+    "level" to 5,
+    "score" to 1250,
+    "time_spent" to 120,
+    "difficulty" to "hard"
+))
+```
+
+### Error Tracking
+```kotlin
+// Automatic crash reporting (set up in Application class)
+try {
+    riskyOperation()
+} catch (exception: Exception) {
+    InsightTrackSDK.getInstance().logCrash(exception)
+}
+```
+
+---
+
+## 🔧 Configuration Options
+
+### Development vs Production
+```kotlin
+// For development (local testing)
+InsightTrackSDK.Builder.with(this)
+    .setApiKey("test-key")
+    .useLocalDevelopment(5001)  // Your local server port
+    .build()
+
+// For production
+InsightTrackSDK.Builder.with(this)
+    .setApiKey("your-production-key")
+    .useProduction("insighttrack-dashboard.app")  // Demo server (not deployed)
+    .build()
+```
+
+### All Configuration Options
+```kotlin
+InsightTrackSDK.Builder.with(this)
+    .setApiKey("your-api-key")                    // Required
+    .useProduction("insighttrack-dashboard.app")  // Demo server (not deployed)
+    .useLocalDevelopment(5001)                    // OR local development
+    .build()
+```
+
+---
+
+## 📋 Requirements
+
+- **Minimum Android**: API 26 (Android 8.0)
+- **Permissions**: Internet access (automatically added)
+- **Size**: < 500KB added to your app
+
+---
+
+## 🆘 Troubleshooting
+
+### "SDK not initialized" Error
+```kotlin
+// Make sure you call this in your Application class onCreate():
+InsightTrackSDK.Builder.with(this).setApiKey("your-key").build()
+```
+
+### Events Not Showing Up
+1. **Check internet connection** - Events are queued offline and sent when online
+2. **Verify API key** - Make sure you're using the correct key
+3. **Check logs** - Look for "📊 Event tracked" messages in Android Studio
+
+### Testing During Development
+```kotlin
+// Add this button to test your integration:
+findViewById<Button>(R.id.testButton).setOnClickListener {
+    InsightTrackSDK.getInstance().trackEvent("Test button clicked - analytics working!")
+}
+```
+
+---
+
+## 🤝 Need Help?
+
+- **📧 Email**: michael.arie@s.afeka.ac.il
+
+---
+
+## 📄 License
+
+MIT License - use in any project, commercial or personal.
