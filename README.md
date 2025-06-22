@@ -211,6 +211,34 @@ findViewById<Button>(R.id.testButton).setOnClickListener {
 }
 ```
 
+### Local Development Setup
+
+If you want to test with a local server (HTTP), you'll need to allow cleartext traffic:
+
+**1. Create network security config**
+Create file: `app/src/main/res/xml/network_security_config.xml`
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="false">10.0.2.2</domain>
+        <domain includeSubdomains="false">localhost</domain>
+        <domain includeSubdomains="false">127.0.0.1</domain>
+    </domain-config>
+</network-security-config>
+```
+
+**2. Add to AndroidManifest.xml**
+```xml
+<application
+    android:name=".MyApplication"
+    android:networkSecurityConfig="@xml/network_security_config"
+    ...>
+```
+
+**Note**: This is only needed for development with HTTP. Production apps using HTTPS don't need this configuration.
+
+
 ---
 
 ## 🤝 Need Help?
