@@ -70,5 +70,5 @@ internal fun getAddressId(userId: String): String {
 }
 
 internal fun shouldBypassOTPValidation() : Boolean {
-	return false
+	return true
 }
