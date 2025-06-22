@@ -26,7 +26,6 @@ class InsightTrackSDK private constructor(
     // Location helper for geographic analytics
     private lateinit var locationHelper: LocationHelper
 
-    // Session and user tracking
     private var userId: String? = null
     private var sessionId: String? = null
     private var sessionStartTime: Long = 0
@@ -46,7 +45,6 @@ class InsightTrackSDK private constructor(
         println("🌐 Base URL: $baseUrl")
         println("📍 Location capabilities: ${locationHelper.getLocationCapabilities()}")
 
-        // Test connection
         testConnection()
     }
 
@@ -94,6 +92,31 @@ class InsightTrackSDK private constructor(
         }
     }
 
+    /**
+     * Track any event with just a name and description (beginner friendly)
+     *
+     * @param eventType What kind of event happened (like "button_click", "page_view", "user_action")
+     * @param description A simple description of what happened (like "User clicked the share button")
+     */
+    fun trackEvent(eventType: String, description: String) {
+        val properties = mapOf(
+            "description" to description,
+            "event_category" to "user_action",
+            "tracking_method" to "simple_api"
+        )
+
+        trackEvent(eventType, properties)
+    }
+
+    /**
+     * Track an event with just a description
+     *
+     * @param description What happened in plain English ("User shared a post on social media")
+     */
+    fun trackEvent(description: String) {
+        trackEvent("custom_event", description)
+    }
+
     // User Management
     fun setUserId(userId: String) {
         this.userId = userId
@@ -117,7 +140,7 @@ class InsightTrackSDK private constructor(
             "Unknown"
         }
 
-        // Create user registration request using our data class
+        // Create user registration request
         val userRequest = UserRegistrationRequest(
             package_name = packageName,
             user_id = userId,

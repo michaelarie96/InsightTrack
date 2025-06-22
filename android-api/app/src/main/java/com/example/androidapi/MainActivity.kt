@@ -142,5 +142,33 @@ class MainActivity : AppCompatActivity() {
             val offlineStorage = OfflineEventStorage(this)
             offlineStorage.clearCorruptedEvents()
         }
+
+        // Test the 2-parameter simple method
+        findViewById<Button>(R.id.simple_event_button)?.setOnClickListener {
+            InsightTrackSDK.getInstance().trackEvent(
+                "share_button_click",
+                "User clicked the share button on main screen"
+            )
+            println("✅ Tested simple event with 2 parameters!")
+        }
+
+        // Test the 1-parameter super simple method
+        findViewById<Button>(R.id.super_simple_event_button)?.setOnClickListener {
+            InsightTrackSDK.getInstance().trackEvent(
+                "User opened the settings menu from the main dashboard"
+            )
+            println("✅ Tested super simple event with 1 parameter!")
+        }
+
+        // Test multiple simple events at once
+        findViewById<Button>(R.id.test_multiple_events_button)?.setOnClickListener {
+            println("🎯 Testing multiple simple events...")
+
+            InsightTrackSDK.getInstance().trackEvent("video_started", "User began watching tutorial video")
+            InsightTrackSDK.getInstance().trackEvent("User scrolled to bottom of page")
+            InsightTrackSDK.getInstance().trackEvent("notification_dismissed", "User swiped away promotional notification")
+
+            println("✅ Tested 3 different simple events!")
+        }
     }
 }

@@ -135,17 +135,40 @@
             android:id="@+id/retry_offline_button"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="🔄 Retry Offline Events (Test)"
-            android:background="#FF9800"
-            android:textColor="@color/white" />
+            android:text="🔄 Retry Offline Events (Test)" />
 
         <Button
             android:id="@+id/clear_offline_button"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="🧹 Clear Corrupted Events"
-            android:background="#f44336"
-            android:textColor="@color/white" />
+            android:text="🧹 Clear Corrupted Events" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Simple Event Tracking"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="8dp"/>
+
+        <Button
+            android:id="@+id/simple_event_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Simple Event (2 params)" />
+
+        <Button
+            android:id="@+id/super_simple_event_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Super Simple Event (1 param)" />
+
+        <Button
+            android:id="@+id/test_multiple_events_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Test Multiple Simple Events" />
 
     </LinearLayout>
 </ScrollView>
