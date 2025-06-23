@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:layout_marginBottom="8dp"
+    android:background="@android:drawable/dialog_holo_light_frame"
+    android:elevation="2dp">
+
+    <!-- Product header with name and price -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <TextView
+            android:id="@+id/product_name"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="iPhone 15"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="@android:color/black" />
+
+        <TextView
+            android:id="@+id/product_price"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="$799.99"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="@android:color/holo_green_dark" />
+
+    </LinearLayout>
+
+    <!-- Product category -->
+    <TextView
+        android:id="@+id/product_category"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Electronics"
+        android:textSize="12sp"
+        android:textColor="@android:color/darker_gray"
+        android:layout_marginTop="4dp" />
+
+    <!-- Product description -->
+    <TextView
+        android:id="@+id/product_description"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Latest iPhone with advanced camera"
+        android:textSize="14sp"
+        android:textColor="@android:color/black"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="12dp" />
+
+    <!-- Action buttons -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <Button
+            android:id="@+id/view_product_button"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="👁️ View"
+            android:textSize="12sp"
+            android:layout_marginEnd="8dp"
+            android:padding="8dp" />
+
+        <Button
+            android:id="@+id/add_to_cart_button"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="🛒 Add to Cart"
+            android:textSize="12sp"
+            android:padding="8dp" />
+
+    </LinearLayout>
+
+</LinearLayout>

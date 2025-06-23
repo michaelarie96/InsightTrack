@@ -43,7 +43,7 @@ dependencies {
     implementation(libs.androidx.activity)
     implementation(libs.androidx.constraintlayout)
 
-    implementation("com.github.michaelarie96:InsightTrack:v1.0.6")
+    implementation("com.github.michaelarie96:InsightTrack:v1.0.7")
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
