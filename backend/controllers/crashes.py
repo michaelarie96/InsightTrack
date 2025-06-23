@@ -233,9 +233,7 @@ def calculate_crash_rate(total_crashes, total_sessions):
 
 def get_daily_crash_trends(crashes_collection):
     """
-    Get daily crash trends over the last 30 days
-
-    This shows if crashes are increasing/decreasing over time
+    Get daily crash trends over the last 30 days INCLUDING TODAY
     """
 
     # Count crash occurrences by day using the occurrences array
@@ -247,31 +245,30 @@ def get_daily_crash_trends(crashes_collection):
                 "crash_count": {"$sum": 1}
             }
         },
-        {"$sort": {"_id": 1}},
-        {"$limit": 30}  # Last 30 days
+        {"$sort": {"_id": 1}}
     ]
 
     results = list(crashes_collection.aggregate(pipeline))
 
-    # Fill in missing days with 0 crashes
+    # Convert to dictionary for easy lookup
+    crash_counts_by_date = {item['_id']: item['crash_count'] for item in results}
+
+    # Fill in ALL days from 29 days ago to today
     trend_data = []
-    for i in range(30, 0, -1):
+    for i in range(29, -1, -1):
         date = datetime.now() - timedelta(days=i)
         date_str = date.strftime("%Y-%m-%d")
 
-        # Find crash count for this date
-        crash_count = 0
-        for result in results:
-            if result['_id'] == date_str:
-                crash_count = result['crash_count']
-                break
+        # Get crash count for this date (0 if no crashes)
+        crash_count = crash_counts_by_date.get(date_str, 0)
 
         trend_data.append({
             "date": date_str,
             "crashes": crash_count
         })
 
-    print(f"📈 Daily crash trends calculated for {len(trend_data)} days")
+    print(
+        f"📈 Daily crash trends calculated for {len(trend_data)} days (including today: {datetime.now().strftime('%Y-%m-%d')})")
     return trend_data
 
 

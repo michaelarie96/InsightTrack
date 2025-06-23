@@ -211,7 +211,7 @@ def calculate_user_growth(users_collection):
     growth_data = []
 
     # Go back 30 days and count new users each day
-    for i in range(30, 0, -1):
+    for i in range(29, -1, -1):
         date = datetime.now() - timedelta(days=i)
         date_start = date.replace(hour=0, minute=0, second=0, microsecond=0)
         date_end = date_start + timedelta(days=1)

@@ -1,5 +1,6 @@
 package com.insighttrack.ecommerce
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.widget.Button
@@ -94,15 +95,21 @@ class CartActivity : AppCompatActivity() {
         checkoutButton.setOnClickListener {
             if (CartManager.itemCount > 0) {
 
-                // Track checkout initiation
+                // Track checkout event
                 InsightTrackSDK.getInstance().trackCheckout()
 
-                // TODO: Navigate to checkout screen
-                println("💳 Proceeding to checkout with ${CartManager.itemCount} items, $${String.format("%.2f", CartManager.totalPrice)}")
+                // Track button click event
+                InsightTrackSDK.getInstance().trackButtonClick("proceed_to_checkout_button", mapOf(
+                    "cart_items" to CartManager.itemCount,
+                    "cart_total" to CartManager.totalPrice,
+                    "source_screen" to "cart"
+                ))
 
-                // For now, just show a message
-                println("🚧 Checkout screen not implemented yet - this would navigate to payment")
+                // Navigate to checkout
+                val intent = Intent(this, CheckoutActivity::class.java)
+                startActivity(intent)
 
+                println("➡️ Proceeding from cart to checkout")
             } else {
                 println("⚠️ Cannot checkout with empty cart")
             }
