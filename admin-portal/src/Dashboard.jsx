@@ -3,39 +3,50 @@ import { StatLineChart, DistributionPieChart, HorizontalBarChart } from './Chart
 import ModeToggle, { ModeInfoCard } from './components/ModeToggle';
 import { dataService } from './services/dataService';
 
-const Dashboard = () => {
+
+const Dashboard = ({ currentUser, allowDemoMode = true }) => {
   const [dashboardData, setDashboardData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedPackage] = useState('com.example.androidapi');
-  const [isDemoMode, setIsDemoMode] = useState(true); // start in demo mode for presentation
+  const [isDemoMode, setIsDemoMode] = useState(allowDemoMode); // start in demo mode for presentation
 
-  // Fetch data when component loads or mode changes
-  const fetchDashboardData = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
+// Fetch data when component loads or mode changes
+const fetchDashboardData = useCallback(async () => {
+  try {
+    setLoading(true);
+    setError(null);
 
-      console.log(`📊 Fetching dashboard data in ${isDemoMode ? 'DEMO' : 'LIVE'} mode...`);
-      
-      dataService.setDemoMode(isDemoMode);
-      
-      const data = await dataService.getDashboardData(selectedPackage);
-      setDashboardData(data);
-      
-      console.log('✅ Dashboard data loaded successfully!');
-      
-    } catch (err) {
-      console.error('❌ Error fetching dashboard data:', err);
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  }, [selectedPackage, isDemoMode]);
+    // For users without demo mode access, force live mode
+    const actualMode = allowDemoMode ? isDemoMode : false;
+
+    console.log(`📊 Fetching dashboard data for ${currentUser.name} (${currentUser.package}) in ${actualMode ? 'DEMO' : 'LIVE'} mode...`);
+    
+    dataService.setDemoMode(actualMode);
+    
+    const data = await dataService.getDashboardData(currentUser.package);
+    setDashboardData(data);
+    
+    console.log('✅ Dashboard data loaded successfully!');
+    
+  } catch (err) {
+    console.error('❌ Error fetching dashboard data:', err);
+    setError(err.message);
+  } finally {
+    setLoading(false);
+  }
+}, [currentUser.package, currentUser.name, isDemoMode, allowDemoMode]);
 
   useEffect(() => {
     fetchDashboardData();
   }, [fetchDashboardData]);
+
+useEffect(() => {
+  // When switching to a user without demo mode access, force live mode
+  if (!allowDemoMode && isDemoMode) {
+    setIsDemoMode(false);
+  }
+}, [allowDemoMode, isDemoMode]);
 
   const handleModeChange = (newDemoMode) => {
     setIsDemoMode(newDemoMode);
@@ -222,11 +233,13 @@ const Dashboard = () => {
             <p className="text-gray-600">Package: {dashboardData?.metadata?.package || selectedPackage}</p>
           </div>
           <div className="flex items-center space-x-4">
-            <ModeToggle 
-              isDemoMode={isDemoMode}
-              onModeChange={handleModeChange}
-              disabled={loading}
-            />
+            {allowDemoMode && (
+              <ModeToggle 
+                isDemoMode={isDemoMode}
+                onModeChange={handleModeChange}
+                disabled={loading}
+              />
+            )}
             <button 
               onClick={fetchDashboardData}
               className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 flex items-center"
