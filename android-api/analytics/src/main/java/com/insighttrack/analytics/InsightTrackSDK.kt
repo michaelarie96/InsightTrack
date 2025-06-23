@@ -245,8 +245,9 @@ class InsightTrackSDK private constructor(
         trackEvent("logout")
     }
 
-    fun trackButtonClick(buttonId: String) {
-        trackEvent("button_click", mapOf("button_id" to buttonId))
+    fun trackButtonClick(buttonId: String, additionalProperties: Map<String, Any> = emptyMap()) {
+        val properties = mapOf("button_id" to buttonId) + additionalProperties
+        trackEvent("button_click", properties)
     }
 
     fun trackFeatureUsed(featureName: String) {
@@ -266,39 +267,78 @@ class InsightTrackSDK private constructor(
     }
 
     // E-commerce Events
-    fun trackProductView(productId: String, productName: String, price: Double, category: String) {
-        trackEvent("product_view", mapOf(
+    fun trackProductView(
+        productId: String,
+        productName: String,
+        price: Double,
+        category: String,
+        additionalProperties: Map<String,Any> = emptyMap()
+    ){
+        // Built-in properties
+        val baseProperties = mapOf(
             "product_id" to productId,
             "product_name" to productName,
             "price" to price,
             "category" to category
-        ))
+        )
+
+        // Merge with additional properties, if any
+        val allProperties = baseProperties + additionalProperties
+
+        trackEvent("product_view", allProperties)
     }
 
-    fun trackAddToCart(productId: String, productName: String, price: Double, quantity: Int) {
-        trackEvent("add_to_cart", mapOf(
+    fun trackAddToCart(
+        productId: String,
+        productName: String,
+        price: Double,
+        quantity: Int,
+        additionalProperties: Map<String, Any> = emptyMap()
+    ) {
+        // Built-in properties
+        val baseProperties = mapOf(
             "product_id" to productId,
             "product_name" to productName,
             "price" to price,
             "quantity" to quantity,
             "total" to (price * quantity)
-        ))
+        )
+
+        // Merge with additional properties, if any
+        val allProperties = baseProperties + additionalProperties
+
+        trackEvent("add_to_cart", allProperties)
     }
 
     fun trackCheckout() {
         trackEvent("checkout")
     }
 
-    fun trackPurchase(orderId: String, total: Double, items: List<Map<String, Any?>> = listOf()) {
+    fun trackPurchase(
+        orderId: String,
+        total: Double,
+        items: List<Map<String, Any?>> = listOf(),
+        additionalProperties: Map<String, Any> = emptyMap()
+        ) {
         val params = mutableMapOf<String, Any>("order_id" to orderId, "total" to total)
         if (items.isNotEmpty()) {
             params["items"] = items
         }
+
+        params.putAll(additionalProperties)
+
         trackEvent("purchase", params)
     }
 
-    fun trackSearch(query: String, resultsCount: Int) {
-        trackEvent("search", mapOf("query" to query, "results_count" to resultsCount))
+    fun trackSearch(query: String, resultsCount: Int, additionalProperties: Map<String, Any> = emptyMap()) {
+        val params = mutableMapOf<String, Any>(
+            "query" to query,
+            "results_count" to resultsCount
+        )
+
+        params.putAll(additionalProperties)
+
+        trackEvent("search", params)
     }
 
     // Error Tracking
