@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <!-- Header with back button and title -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="16dp">
+
+        <Button
+            android:id="@+id/back_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="← Back"
+            android:textSize="14sp"
+            android:padding="8dp" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="🛒 Shopping Cart"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:textColor="@android:color/black"
+            android:gravity="center" />
+
+    </LinearLayout>
+
+    <!-- Cart summary section -->
+    <LinearLayout
+        android:id="@+id/cart_summary_section"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp"
+        android:background="@android:drawable/dialog_holo_light_frame"
+        android:layout_marginBottom="16dp">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Cart Summary"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Total Items:"
+                android:textSize="14sp" />
+
+            <TextView
+                android:id="@+id/total_items_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="4dp">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Total Price:"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/total_price_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="$0.00"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="@android:color/holo_green_dark" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <!-- Cart items label -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Your Items:"
+        android:textStyle="bold"
+        android:layout_marginBottom="8dp" />
+
+    <!-- Cart items list (scrollable) -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="300dp">
+
+        <LinearLayout
+            android:id="@+id/cart_items_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- Cart items will be added here dynamically -->
+
+        </LinearLayout>
+
+    </ScrollView>
+
+    <!-- Bottom action buttons -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="16dp">
+
+        <Button
+            android:id="@+id/clear_cart_button"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_weight="1.5"
+            android:text="🗑️ Clear Cart"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            android:layout_marginEnd="8dp"
+            android:backgroundTint="@android:color/holo_red_light" />
+
+        <Button
+            android:id="@+id/checkout_button"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_weight="2.5"
+            android:text="💳 Proceed to Checkout"
+            android:textStyle="bold"
+            android:backgroundTint="@android:color/holo_green_dark" />
+
+    </LinearLayout>
+
+    <!-- Empty cart message -->
+    <TextView
+        android:id="@+id/empty_cart_message"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="🛒 Your cart is empty\nAdd some products to get started!"
+        android:textSize="16sp"
+        android:gravity="center"
+        android:layout_marginTop="32dp"
+        android:visibility="gone" />
+
+</LinearLayout>

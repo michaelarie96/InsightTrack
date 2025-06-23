@@ -78,8 +78,11 @@ class MainActivity : AppCompatActivity() {
                 "source_screen" to "product_list"
             ))
 
-            // TODO: Navigate to cart screen
-            println("🛒 Cart button clicked - will navigate to cart screen")
+            // Navigate to CartActivity
+            val intent = Intent(this, CartActivity::class.java)
+            startActivity(intent)
+
+            println("🛒 Navigating to cart screen with ${CartManager.itemCount} items")
         }
 
         // Search button
