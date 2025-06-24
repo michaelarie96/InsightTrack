@@ -435,17 +435,17 @@ def get_recent_crashes_formatted(crashes_collection):
         recent_crashes.append({
             "error": crash['error_type'],
             "message": crash.get('error_message', '')[:100],
-            "full_message": crash.get('error_message', ''),  # Full message for modal
-            "stack_trace": crash.get('stack_trace', ''),     # Stack trace for modal
+            "full_message": crash.get('error_message', ''),
+            "stack_trace": crash.get('stack_trace', ''),
             "device": device_model,
             "count": crash['count'],
             "lastSeen": format_time_ago(crash['last_seen']),
             "first_seen": crash['first_seen'].isoformat() if crash.get('first_seen') else None,
             "trend": get_crash_trend_indicator(crash),
-            "crash_id": crash['_id'],                        # Crash ID for modal
-            "users_affected": users_affected,                # Users affected for modal
-            "impact_score": impact_score,                    # Impact score for modal
-            "occurrences": crash.get('occurrences', [])     # All occurrences for modal
+            "crash_id": crash['_id'],
+            "users_affected": users_affected,
+            "impact_score": impact_score,
+            "occurrences": crash.get('occurrences', [])
         })
 
     return recent_crashes
