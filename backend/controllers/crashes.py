@@ -405,7 +405,7 @@ def get_top_crashes_by_impact(crashes_collection):
 
 
 def get_recent_crashes_formatted(crashes_collection):
-    """Get recent crashes formatted for table display"""
+    """Get recent crashes formatted for table display with enhanced details"""
 
     top_crashes = list(crashes_collection.find({})
                        .sort("last_seen", -1)
@@ -422,13 +422,30 @@ def get_recent_crashes_formatted(crashes_collection):
             if latest_occurrence.get('device_info') and latest_occurrence['device_info'].get('model'):
                 device_model = latest_occurrence['device_info']['model']
 
+        # Calculate users affected (unique user_ids in occurrences)
+        unique_users = set()
+        for occurrence in crash.get('occurrences', []):
+            if occurrence.get('user_id'):
+                unique_users.add(occurrence['user_id'])
+        users_affected = len(unique_users)
+
+        # Calculate impact score (frequency × unique users)
+        impact_score = crash['count'] * users_affected
+
         recent_crashes.append({
             "error": crash['error_type'],
             "message": crash.get('error_message', '')[:100],
+            "full_message": crash.get('error_message', ''),  # Full message for modal
+            "stack_trace": crash.get('stack_trace', ''),     # Stack trace for modal
             "device": device_model,
             "count": crash['count'],
             "lastSeen": format_time_ago(crash['last_seen']),
-            "trend": get_crash_trend_indicator(crash)  # trend indicator
+            "first_seen": crash['first_seen'].isoformat() if crash.get('first_seen') else None,
+            "trend": get_crash_trend_indicator(crash),
+            "crash_id": crash['_id'],                        # Crash ID for modal
+            "users_affected": users_affected,                # Users affected for modal
+            "impact_score": impact_score,                    # Impact score for modal
+            "occurrences": crash.get('occurrences', [])     # All occurrences for modal
         })
 
     return recent_crashes

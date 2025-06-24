@@ -100,10 +100,33 @@ def get_events(package_name):
                       .sort("timestamp", -1)
                       .limit(limit))
 
-        # Convert timestamps to ISO format
+        # Convert timestamps to ISO format AND add display formatting
         timestamp_fields = ['timestamp', 'created_at']
         for event in events:
             format_timestamps_in_document(event, timestamp_fields)
+
+            # Add display formatting for Recent Activity table
+            if 'timestamp' in event:
+                timestamp_obj = datetime.fromisoformat(event['timestamp'].replace('Z', '+00:00'))
+                event['full_date'] = timestamp_obj.strftime('%Y-%m-%d')
+                event['time_only'] = timestamp_obj.strftime('%H:%M')
+
+            # Format user display (truncate long user IDs)
+            if event.get('user_id'):
+                user_id = event['user_id']
+                event['user_display'] = user_id[:8] + '...' if len(user_id) > 8 else user_id
+            else:
+                event['user_display'] = 'Anonymous'
+
+            # Create properties preview (first 2 properties)
+            props = event.get('properties', {})
+            if props and isinstance(props, dict):
+                # Get first 2 key-value pairs
+                prop_items = list(props.items())[:2]
+                prop_preview = ', '.join([f"{k}: {v}" for k, v in prop_items])
+                event['properties_preview'] = prop_preview[:40] + '...' if len(prop_preview) > 40 else prop_preview
+            else:
+                event['properties_preview'] = 'No properties'
 
         return jsonify({
             "package_name": package_name,
