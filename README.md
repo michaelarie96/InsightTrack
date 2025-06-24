@@ -166,7 +166,7 @@ InsightTrackSDK.getInstance().logError("API_ERROR", "Failed to load user data")
 
 *Full stack traces, impact analysis, and debugging information for quick issue resolution*
 
-<br><br>
+<br>
 
 </div>
 
