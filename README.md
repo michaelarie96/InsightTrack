@@ -181,6 +181,18 @@ InsightTrackSDK.getInstance().logError("API_ERROR", "Failed to load user data")
 
 ---
 
+## 🎬 Video Demo
+
+**Watch the complete InsightTrack ecosystem in action:**
+
+
+[![InsightTrack Demo Video](https://img.shields.io/badge/▶️_Watch_Demo-3.5_minutes-blue?style=for-the-badge)](https://drive.google.com/file/d/1zJRalZXnB1uZ-G6vZQckjYrycLsWgMAe/view?usp=sharing)
+
+
+**Note:** *Video recorded for academic demonstration purposes*
+
+---
+
 ## 🔧 Configuration Options
 
 ### Development vs Production
