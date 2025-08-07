@@ -72,9 +72,10 @@ class NetworkManager(private val context: Context, private val baseUrl: String) 
     }
 
     /**
-     * Send any events that were stored offline
+     * Send any events and sessions that were stored offline
      */
     private fun sendPendingEvents() {
+        // Send pending events
         val pendingEvents = offlineStorage.getPendingEvents()
         if (pendingEvents.isNotEmpty()) {
             println("📤 Found ${pendingEvents.size} pending offline events, attempting to send...")
@@ -88,12 +89,34 @@ class NetworkManager(private val context: Context, private val baseUrl: String) 
 
                     override fun onError(error: String) {
                         println("❌ Failed to send pending event: ${event.event_type} - keeping in storage for later retry")
-                        // DON'T store it again - it's already in storage!
+                    }
+                })
+            }
+        }
+
+        // Send pending sessions
+        val pendingSessions = offlineStorage.getPendingSessions()
+        if (pendingSessions.isNotEmpty()) {
+            println("📤 Found ${pendingSessions.size} pending offline sessions, attempting to send...")
+
+            pendingSessions.forEach { session ->
+                sendSessionDirect(session, object : EventCallback<SessionResponse> {
+                    override fun onSuccess(data: SessionResponse?) {
+                        offlineStorage.removeSession(session)
+                        println("✅ Sent pending session: ${session.action} ${session.session_id}")
+                    }
+
+                    override fun onError(error: String) {
+                        println("❌ Failed to send pending session: ${session.action} ${session.session_id} - keeping in storage for later retry")
                     }
                 })
             }
         } else {
-            println("📭 No pending events to send")
+            println("📭 No pending sessions to send")
+        }
+
+        if (pendingEvents.isEmpty() && pendingSessions.isEmpty()) {
+            println("📭 No pending data to send")
         }
     }
 
@@ -122,7 +145,7 @@ class NetworkManager(private val context: Context, private val baseUrl: String) 
     }
 
     /**
-     * Send an event to the API (asynchronously)
+     * Send an event to the API
      */
     fun sendEvent(eventRequest: EventRequest, callback: EventCallback<EventResponse>) {
         println("📤 Sending event: ${eventRequest.event_type}")
@@ -165,6 +188,73 @@ class NetworkManager(private val context: Context, private val baseUrl: String) 
     }
 
     /**
+     * Send session directly without offline storage (for retry attempts)
+     */
+    private fun sendSessionDirect(sessionRequest: SessionRequest, callback: EventCallback<SessionResponse>) {
+        val call = apiService.sendSession(sessionRequest)
+
+        call.enqueue(object : Callback<SessionResponse> {
+            override fun onResponse(call: Call<SessionResponse>, response: Response<SessionResponse>) {
+                if (response.isSuccessful) {
+                    val sessionResponse = response.body()
+                    callback.onSuccess(sessionResponse)
+                } else {
+                    val errorMsg = "Failed to send session: ${response.code()} ${response.message()}"
+                    callback.onError(errorMsg)
+                }
+            }
+
+            override fun onFailure(call: Call<SessionResponse>, t: Throwable) {
+                val errorMsg = "Network error: ${t.message}"
+                callback.onError(errorMsg)
+            }
+        })
+    }
+
+    /**
+     * Send session data to the API
+     */
+    fun sendSession(sessionRequest: SessionRequest, callback: EventCallback<SessionResponse>) {
+        println("🕐 Sending session ${sessionRequest.action}: ${sessionRequest.session_id}")
+
+        // Check if network is available first
+        if (!networkMonitor.isNetworkCurrentlyAvailable()) {
+            println("📴 No internet connection - storing session offline")
+            offlineStorage.storeSession(sessionRequest)
+            callback.onError("No internet connection - session stored offline")
+            return
+        }
+
+        val call = apiService.sendSession(sessionRequest)
+
+        call.enqueue(object : Callback<SessionResponse> {
+            override fun onResponse(call: Call<SessionResponse>, response: Response<SessionResponse>) {
+                if (response.isSuccessful) {
+                    val sessionResponse = response.body()
+                    println("✅ Session ${sessionRequest.action} successful: ${sessionResponse?.message}")
+                    callback.onSuccess(sessionResponse)
+                } else {
+                    val errorMsg = "Failed to send session: ${response.code()} ${response.message()}"
+                    println("❌ $errorMsg")
+
+                    // Store offline for retry later
+                    offlineStorage.storeSession(sessionRequest)
+                    callback.onError(errorMsg)
+                }
+            }
+
+            override fun onFailure(call: Call<SessionResponse>, t: Throwable) {
+                val errorMsg = "Session network error: ${t.message}"
+                println("❌ $errorMsg")
+
+                // Store offline for retry later
+                offlineStorage.storeSession(sessionRequest)
+                callback.onError(errorMsg)
+            }
+        })
+    }
+
+    /**
      * Send user registration to the API
      */
     fun sendUserRegistration(userRequest: UserRegistrationRequest, callback: EventCallback<UserRegistrationResponse>) {
@@ -195,42 +285,6 @@ class NetworkManager(private val context: Context, private val baseUrl: String) 
 
             override fun onFailure(call: Call<UserRegistrationResponse>, t: Throwable) {
                 val errorMsg = "User registration network error: ${t.message}"
-                println("❌ $errorMsg")
-                callback.onError(errorMsg)
-            }
-        })
-    }
-
-    /**
-     * Send session data to the API
-     */
-    fun sendSession(sessionRequest: SessionRequest, callback: EventCallback<SessionResponse>) {
-        println("🕐 Sending session ${sessionRequest.action}: ${sessionRequest.session_id}")
-
-        // Check if network is available first
-        if (!networkMonitor.isNetworkCurrentlyAvailable()) {
-            println("📴 No internet connection - session will retry later")
-            callback.onError("No internet connection")
-            return
-        }
-
-        val call = apiService.sendSession(sessionRequest)
-
-        call.enqueue(object : Callback<SessionResponse> {
-            override fun onResponse(call: Call<SessionResponse>, response: Response<SessionResponse>) {
-                if (response.isSuccessful) {
-                    val sessionResponse = response.body()
-                    println("✅ Session ${sessionRequest.action} successful: ${sessionResponse?.message}")
-                    callback.onSuccess(sessionResponse)
-                } else {
-                    val errorMsg = "Failed to send session: ${response.code()} ${response.message()}"
-                    println("❌ $errorMsg")
-                    callback.onError(errorMsg)
-                }
-            }
-
-            override fun onFailure(call: Call<SessionResponse>, t: Throwable) {
-                val errorMsg = "Session network error: ${t.message}"
                 println("❌ $errorMsg")
                 callback.onError(errorMsg)
             }
